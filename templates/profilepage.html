@@ -1,0 +1,241 @@
+<html lang="en">
+
+<head>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles/profilepage.css') }}">
+    <link href="{{ url_for('static', filename='styles/styles.css') }}" rel="stylesheet">
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% include "header.html" %}
+    <link href="{{ url_for('static',filename='styles/styles.css') }}" rel="stylesheet" />
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    
+    {% include "navbar.html" %}
+    <main class="container-fluid px-3 px-md-5">
+        <div class="row">
+            <div class="col-12 col-md-3 px-0 px-md-3">
+                <div class="nav nav-pills d-flex flex-md-column justify-content-center" id="v-pills-tab">
+                    <a class="nav-link my-md-2 px-2 px-md-3 text-dark active" id="personal-tab" data-toggle="pill"
+                        href="#personal" role="tab" aria-controls="personal" aria-selected="true">Personal Info</a>
+                    {% if 'accountId' and 'accountRole' in session and session['accountRole'] == 'user' %}
+                    <a class="nav-link my-md-2 px-2 px-md-3 text-dark" id="booking-history-tab" data-toggle="pill"
+                        href="#booking-history" role="tab" aria-controls="booking-history" aria-selected="false">Booking
+                        History</a>
+                    <a class="nav-link my-md-2 px-2 px-md-3 text-dark" id="reviews-tab" data-toggle="pill"
+                        href="#reviews" role="tab" aria-controls="reviews" aria-selected="false">View Reviews</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-sm-12 col-md-9 mt-0 mt-md-2 py-4 px-5 bg-light rounded">
+                <div class="tab-content" id="v-pills-tabContent">
+
+                    <div class="tab-pane fade show active" id="personal" role="tabpanel" aria-labelledby="personal-tab">
+                        <div class="row">
+
+                        </div>
+                        <!--Personal-Information-View-->
+                        <div id="personal-view">
+                            <form action="/profile" method="post">
+                                <div class="row gx-lg-5">
+                                    <div class="col align-self-center">
+                                        PERSONAL INFORMATION
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="row justify-content-center">
+                                    <!--Usename-->
+                                    <div class="col-12 col-md-8">
+                                        <div class="row justify-content-center">
+                                            <div class="col-5 col-md-12">
+                                                <label for="username_label">Username</label>
+                                            </div>
+                                            <div class="col-6 col-md-12">
+                                                <input type="text" id="username" name="username"
+                                                    class="form-control personalInfo" value="{{ accountUsername }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+
+                                <div class="row justify-content-center">
+                                    <!--Email-->
+                                    <div class="col-12 col-md-4">
+                                        <div class="row justify-content-center">
+                                            <div class="col-5 col-md-12">
+                                                <label for="email_label">Email</label>
+                                            </div>
+                                            <div class="col-6 col-md-12">
+                                                <input type="email" id="email" name="email"
+                                                    class="form-control personalInfo" value="{{ accountEmail }}">
+                                                <br class="d-block d-md-none" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--Gender-->
+                                    <div class="col-12 col-md-4">
+                                        <div class="row justify-content-center">
+                                            <div class="col-6 col-md-12">
+                                                <label for="gender_label">Gender</label>
+                                            </div>
+                                            <div class="col-6 col-md-12">
+                                                <select class="form-select form-control" name="gender" aria-label="Select Gender" id="gender">
+                                                    <option value="Male" {% if accountGender=="Male" %} selected="selected" {% endif %}>Male</option>
+                                                    <option value="Female" {% if accountGender=="Female" %} selected="selected" {% endif %}>Female</option>
+                                                    <option value="Other" {% if accountGender=="Other" %} selected="selected" {% endif %}>Other</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <br>
+
+                                <div class="row justify-content-center">
+                                    <!--Phone Number-->
+                                    <div class="col-12 col-md-4">
+                                        <div class="row justify-content-center">
+                                            <div class="col-5 col-md-12">
+                                                <label for="phonenumber">Phone Number</label>
+                                            </div>
+                                            <div class="col-6 col-md-12">
+                                                <input type="text" id="phonenumber" name="phonenumber"
+                                                    class="form-control personalInfo" value="{{ accountPhoneNum }}">
+                                                <br class="d-block d-md-none" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+
+                                <br />
+                                <div class="row justify-content-center">
+                                    <!-- Edit Button -->
+                                    <div class="col-12 col-md-8">
+                                        <div class="row justify-content-center">
+                                            <div class="col-6 col-md-12">
+                                                <button type="submit" class="btn btn-primary btn-lg btn-block">Update</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!--Booking History-->
+                    <div class="tab-pane fade 50vh" id="booking-history" role="tabpanel"
+                        aria-labelledby="booking-history-tab">
+                        <div class="text-center mb-4">
+                            <h2>My Bookings</h2>
+                        </div>
+                        <div class="row justify-content-center">
+                            {% for booking in user_bookings %}
+                            <div class="col-md-10 mb-4">
+                                <div class="card">
+                                    <div class="d-flex justify-content-between align-items-center p-3">
+                                        <div class="card-body p-0">
+                                            <h5 class="card-title">{{ booking[0] }}</h5>
+                                            <p class="card-text">
+                                                Number of tickets: {{ booking[1] }}<br>
+                                                Date: {{ booking[2] }}<br>
+                                                Time: {{ booking[3] }}<br>
+                                            </p>
+                                        </div>
+                                       <a href="{{ url_for('user.moviereviews', filmid=booking[4]) }}"
+                                            class="btn btn-primary">Write a Review</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if not user_bookings %}
+                        <div class="text-center">
+                            <p>You have no bookings.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                        <div id="reviews-check">
+                            <div class="row">
+                                <div class="col align-self-center">
+                                    Reviews
+                                </div>
+                            </div>
+                            <hr />
+                            {% if user_reviews %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date Reviewed</th>
+                                        <th>Movie</th>
+                                        <th>Review Title</th>
+                                        <th>Rating</th>
+                                        <th>Review</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for review in user_reviews %}
+                                    <tr>
+                                        <td>{{ review[5] }}</td>
+                                        <td>{{ review[0] }}</td>
+                                        <td>{{ review[1] }}</td>
+                                        <td>{{ review[2] }}</td>
+                                        <td>{{ review[3] }}</td>
+                                        <td>
+                                            <form action="{{ url_for('user.remove_review') }}" method="post"
+                                                style="display:inline;">
+                                                <input type="hidden" name="source" value="profile">
+                                                <input type="hidden" name="review_id" value="{{ review[4] }}">
+                                                <button type="submit" class="btn btn-danger">Remove</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p>No reviews available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <br />
+        <!--jQuery-->
+        <script defer src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous">
+            </script>
+        <!--Bootstrap JS-->
+        <script defer src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"
+            integrity="sha384-6khuMg9gaYr5AxOqhkVIODVIvm9ynTT5J4V1cfthmT+emCG6yVmEZsRHdxlotUnm" crossorigin="anonymous">
+            </script>
+
+        <!-- Custom JS -->
+        <script src="https://kit.fontawesome.com/926cf4293a.js" crossorigin="anonymous"></script>
+        <script>
+            $(document).ready(function () {
+                let hash = window.location.hash;
+                if (hash) {
+                    $('#v-pills-tab a[href="' + hash + '"]').tab('show');
+                }
+            });
+        </script>
+    </main>
+    {% include "footer.html" %}
+</body>
+
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'header.html' %}
+<link rel="stylesheet" href="{{ url_for('static',filename='styles/moviebooking.css') }}">
+<body>
+
+    <!-- Navigation-->
+    {% include 'navbar.html' %}
+
+    <!-- Page Content-->
+    <div class="container mt-5">
+        <!-- Film Details Section -->
+        <div class="row">
+            <div class="col-md-6">
+                <img src="data:image/png;base64,{{ film_poster_base64 }}" alt="Movie Poster" class="img-fluid mb-4">
+            </div>
+            <div class="col-md-6">
+                <h2>{{ film_name }}</h2>
+                <div class="row mt-4">
+                    <!-- Film Metadata Left -->
+                    <div class="col-md-6">
+                        <h5>Filmmaker</h5>
+                        <p>{{ filmmaker_name }}</p>
+                        <h5>Genre</h5>
+                        <p>{{ film_genre }}</p>
+                        <h5>Language</h5>
+                        <p>{{ film_language }}</p>                       
+                    </div>
+                    <!-- Film Metadata Right -->
+                    <div class="col-md-6">
+                        <h5>Release Date</h5>
+                        <p>{{ film_release_date }}</p>
+                        <h5>Runtime</h5>
+                        <p>{{ film_runtime }} Mins</p>
+                        <h5>Maturity Rating</h5>
+                        <p>{{ film_maturity_rating }}</p>
+                        <h5>Film Cast</h5>
+                        <p>{{ film_cast }}</p>
+                    </div>
+                </div>
+                <h5>Synopsis</h5>
+                <p>{{ film_synopsis }}</p>
+            </div>
+        </div>
+
+        <!-- Buy Ticket Section -->
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <h3>Buy ticket</h3>
+                <form class="mt-4" action="{{ url_for('user.payment') }}" method="POST">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <select class="form-select" id="studioSelect" name="studio">
+                                <option>Select Studio</option>
+                                {% for studio in studios %}
+                                <option value="{{ studio[0] }}">{{ studio[1] }} - {{ studio[2] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="dateSelect" name="date">
+                                <option>Select Date</option>
+                                <!-- Dates will be populated dynamically by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="timeSelect" name="time">
+                                <option value="">Select Time</option>
+                                <!-- Times will be populated dynamically by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <span class="capacity-display">Capacity -/-</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <span>Price</span>
+                                <span class="ms-3 price-display">-</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <span>Number of tickets</span>
+                                <button type="button" class="btn btn-light btn-decrement">-</button>
+                                <input type="text" readonly class="ticket-counter form-control ms-3" name="tickets" value="1">
+                                <button type="button" class="btn btn-light btn-increment">+</button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="hidden" id="hiddenPrice" name="price" value="">
+                            <input type="hidden" name="screeningId" value="{{ screeningId }}">
+                            <input type="hidden" name="filmid" value="{{ filmid }}">
+                            <input type="hidden" name="filmName" value="{{ film_name }}">
+                            {% if 'accountId' in session %}
+                                <button type="submit" class="btn btn-success proceed-to-payment-btn" name="submit" disabled="disabled">Proceed to payment</button>
+                            {% else %}
+                                <button type="button" class="btn btn-secondary" disabled="disabled" title="Please log in to proceed">Proceed to payment</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Movie Reviews Section -->
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <h3>Movie Reviews</h3>
+                {% if 'accountId' in session and session.get('accountRole') == 'user' and userReview %}
+                <form method="post" action="{{ url_for('user.moviereviews', filmid=filmid) }}">
+                    <a href="{{ url_for('user.moviereviews', filmid=filmid) }}" class="btn btn-primary mb-4">Write a Review</a>
+                </form>
+                {% endif %}
+                <div class="mt-4">
+                    {% if reviews %}
+                    {% for review in reviews %}
+                    <!--Movie Review Box -->
+                    <div class="border rounded mb-3 p-3">
+                        <div class="row mb-2 text-muted">
+                            <div class="col-md-2">
+                                <strong>Date Reviewed</strong>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Review by {{ review[7] }}</strong>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Rating</strong>
+                            </div>
+                            <div class="col-md-5">
+                                <strong>Review</strong>
+                            </div>
+                        </div>
+                        <!-- Review Data -->
+                        <div class="row">
+                            <div class="col-md-2">
+                                {{ review[6] }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ review[5] }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ review[1] }}/5
+                            </div>
+                            <div class="col-md-2">
+                                <p>{{ review[2] }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                {% if review[3] == current_user_id %}
+                                    <form action="{{ url_for('user.remove_review') }}" method="post" class="remove-review">
+                                        <input type="hidden" name="review_id" value="{{ review[0] }}">
+                                        <input type="hidden" name="filmid" value="{{ filmid }}">
+                                        <input type="hidden" name="source" value="moviebooking">
+                                        <button type="submit" class="btn btn-danger">Remove</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p>No Film Reviews Yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Footer-->
+{% include 'footer.html'%}
+<script>
+    var filmId = {{ filmid }};
+</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='JS/moviebooking.js') }}"></script>
+</body>
+</html>
+
+
+
+
+

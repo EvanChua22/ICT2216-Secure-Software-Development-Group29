@@ -1,0 +1,7 @@
+venv/
+.venv/
+modules/test
+myenv/
+__pycache__
+blueprints/__pycache__
+modules/__pycache__

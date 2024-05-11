@@ -1,0 +1,29 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#!">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="Logo">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                {% if session['accountRole'] != 'filmmaker' %}
+                <li class="nav-item"><a class="nav-link navbar_font_left" aria-current="page" href="/">HOME</a></li>
+                {% endif %}
+                {% if 'accountId' and 'accountRole' in session and session['accountRole'] == 'filmmaker' %}
+                <li class="nav-item"><a class="nav-link navbar_font_left" aria-current="page" href="{{ url_for('filmmaker.dashboard') }}">DASHBOARD</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="container justify-content-end" >
+        <ul class="navbar-nav">
+            {% if 'accountId' and 'accountRole' in session %}
+                <li class="nav-item"><a class="nav-link navbar_font_right" href="{{ url_for('profile') }}">PROFILE</a></li>
+                <li class="nav-item"><a class="nav-link navbar_font_right" href="{{ url_for('logout') }}">LOGOUT</a></li>
+            {% endif %}
+            {% if 'accountId' and 'accountRole' not in session %}
+                <li class="nav-item"><a class="nav-link navbar_font_right" href="{{ url_for('login') }}">LOGIN</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>

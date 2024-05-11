@@ -1,0 +1,14 @@
+{% if results %}
+{% for result in results %}
+<tr>
+    <td>{{ result.name }}</td>
+    <td>{{ result.gender }}</td>
+    <td>{{ result.character }}</td>
+    <td>{{ result.title }}</td>
+</tr>
+{% endfor %}
+{% else %}
+<tr>
+    <td colspan="4">No results found</td>
+</tr>
+{% endif %}

@@ -1,0 +1,35 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/css.css to edit this template
+*/
+/* 
+    Created on  : 16 Mar 2023, 4:15:21 pm
+    Author      : alyssa
+    Used by     : login.php regsiter.php MyAcount.php
+*/
+
+
+/* register */
+.register-background {
+    height: 100%; 
+    background-size: 
+    cover; background-repeat:no-repeat;
+}
+
+/* login & register */
+.card {
+    border-radius: 2%;
+}
+
+.vh-85 {
+    height: 85vh;
+}
+
+/* my profile */
+.nav-pills .nav-link.active {
+    background-color: #f8f9fa !important; /*bg-light color code*/
+}
+
+.form-group label {
+    margin-bottom: 1%;
+}

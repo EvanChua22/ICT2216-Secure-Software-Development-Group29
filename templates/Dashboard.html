@@ -1,0 +1,309 @@
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles/profilepage.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    {% include "header.html" %}
+    <link href="{{ url_for('static',filename='styles/styles.css') }}" rel="stylesheet" />
+    
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    {% include "navbar.html" %}
+    <main class="container-fluid px-3 px-md-5">
+        <div class="row">
+            <div class="col-12 col-md-3 px-0 px-md-3">
+                <div class="nav nav-pills d-flex flex-md-column justify-content-center" id="Dashboard-tab">
+
+                    <a class="nav-link my-md-2 px-2 px-md-3 text-dark active" id="data_analytics-tab" data-toggle="pill"
+                        href="#data_analytics" role="tab" aria-controls="data_analytics" aria-selected="true">Data
+                        Analytics</a>
+
+                    <a class="nav-link my-md-2 px-2 px-md-3 text-dark" id="movie-owned-tab" data-toggle="pill"
+                        href="#movie-owned" role="tab" aria-controls="movie-owned" aria-selected="false">Film
+                        Owned</a>
+
+                    <a class="nav-link my-md-2 px-2 px-md-3 text-dark" id="studio-owned-tab" data-toggle="pill"
+                        href="#studio-owned" role="tab" aria-controls="studio-owned" aria-selected="false">Studios
+                        Owned</a>
+
+                    <a class="nav-link my-md-2 px-2 px-md-3 text-dark" id="find-crew-tab" data-toggle="pill"
+                        href="#find-crew" role="tab" aria-controls="find-crew" aria-selected="false">Find Crew</a>
+                </div>
+            </div>
+
+            <div class="col-sm-12 col-md-9 mt-0 mt-md-2 py-4 px-5 bg-light rounded">
+                <div class="tab-content" id="Dashboard-tabContent">
+
+                    <div class="tab-pane fade show active" id="data_analytics" role="tabpanel"
+                        aria-labelledby="data_analytics-tab">
+                        <div class="row">
+
+                        </div>
+                        <!--Data_Analytics-Information-View-->
+
+                        <div id="data_analytics-view">
+                            <div class="row gx-lg-5">
+                                <!-- First Row -->
+                                <div class="col-lg-6 col-xxl-6 mb-5">
+                                    <div class="card bg-light border-0 h-100">
+                                        <div
+                                            class="card-body shadow bg-white rounded-3 text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                                            <h4 class="fs-4 fw-bold">Pie Chart</h4>
+
+                                            <!-- Put information here -->
+                                            <div id="genrePieChart"></div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-xxl-6 mb-5">
+                                    <div class="card bg-light border-0 h-100">
+                                        <div
+                                            class="card-body shadow bg-white rounded-3 text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                                            <h4 class="fs-4 fw-bold">Bar Chart</h4>
+
+                                            <!-- Put information here -->
+                                            <div id="countriesBarChart"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Second Row -->
+                                <div class="col-lg-6 col-xxl-6 mb-5">
+                                    <div class="card bg-light border-0 h-100">
+                                        <div
+                                            class="card-body shadow bg-white rounded-3 text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                                            <h4 class="fs-4 fw-bold">Top Production Companies</h4>
+
+                                            <!-- Put information here -->
+                                            <div id="companyTable"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-xxl-6 mb-5">
+                                    <div class="card bg-light border-0 h-100">
+                                        <div
+                                            class="card-body shadow bg-white rounded-3 text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                                            <h4 class="fs-4 fw-bold">Top Box Office Hits</h4>
+
+                                            <!-- Put information here -->
+                                            <div id="boxOfficeColumnChart"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                 <div class="col-lg-6 col-xxl-6 mb-5">
+                                    <div class="card bg-light border-0 h-100">
+                                        <div
+                                            class="card-body shadow bg-white rounded-3 text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                                            <h4 class="fs-4 fw-bold">Genre Run Times</h4>
+
+                                             <!-- Put information here -->
+                                            <div id="runtimeGroupBarChart"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                 <div class="col-lg-6 col-xxl-6 mb-5">
+                                    <div class="card bg-light border-0 h-100">
+                                        <div
+                                            class="card-body shadow bg-white rounded-3 text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                                            <h4 class="fs-4 fw-bold">Genre Budgets</h4>
+
+                                             <!-- Put information here -->
+                                            <div id="genreBudgetColumnChart"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!--Movies Owned-->
+                    <div class="tab-pane fade 50vh" id="movie-owned" role="tabpanel" aria-labelledby="movie-owned-tab">
+                        <div id="movie-owned-view">
+                            <div class="row">
+                                <div class="col d-flex justify-content-between align-items-center">
+                                    <p class="mb-0">Film Owned</p>
+                                    <a href="/filmmaker/createfilm" class="btn btn-secondary btn-sm ml-auto">Create
+                                        Film</a>
+                                </div>
+                            </div>
+                            <hr />
+                            <section class="py-5">
+                                <div class="container px-4 px-lg-5 mt-5">
+                                    <div
+                                        class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+                                        {% if not films_list %}
+                                        <h1 class="display-4 fw-bolder">No movies found</h1>
+                                        <p class="lead fw-normal text-white-50 mb-0">With this shop hompeage template
+                                        </p>
+                                        {% else %}
+                                        {% for film in films_list %}
+                                        <div class="col mb-5">
+                                            <div class="card h-100">
+                                                <!-- Product image-->
+                                                <img src="data:image/png;base64,{{ film.film_poster_base64 }}"
+                                                    alt="Film Poster">
+                                                <!-- Product details-->
+                                                <div class="card-body p-4">
+                                                    <div class="text-center">
+                                                        <!-- Product name-->
+                                                        <h5 class="fw-bolder">{{ film.film_name }}</h5>
+                                                        <!-- Product Run Time-->
+                                                        <p>Duration: {{ film.film_runtime }} minutes</p>
+                                                    </div>
+                                                </div>
+                                                <!-- Product actions-->
+                                                <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                                                    <div class="text-center"><a class="btn btn-outline-dark mt-auto"
+                                                           href="{{ url_for('filmmaker.editFilm', filmId=film.film_id) }}">Edit</a></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+
+                    <!-- Studio owned tab-->
+                    <div class="tab-pane fade" id="studio-owned" role="tabpanel" aria-labelledby="studio-owned-tab">
+                        <div id="studio-owned-view">
+                            <div class="row">
+                                <div class="col d-flex justify-content-between align-items-center">
+                                    <p class="mb-0">Studios</p>
+                                    <a href="/filmmaker/createstudio" class="btn btn-secondary btn-sm ml-auto">Create
+                                        Studio</a>
+                                </div>
+                            </div>
+                            <hr />
+                            <section class="py-5">
+                                <div class="container px-4 px-lg-5 mt-5">
+                                    <div
+                                        class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+                                        {% if not studios %}
+                                        <h1 class="display-4 fw-bolder">No studios found</h1>
+                                        {% else %}
+                                        {% for studio in studios %}
+                                        <div class="col mb-5">
+                                            <div class="card h-100">
+                                                <!-- Product details-->
+                                                <div class="card-body p-4">
+                                                    <div class="text-center">
+                                                        <!-- Studio name-->
+                                                        <h5 class="fw-bolder">{{ studio[1] }}</h5>
+                                                        <!-- Studio address-->
+                                                        <p>Address: {{ studio[2] }}</p>
+                                                    </div>
+                                                </div>
+                                                <!-- Product actions-->
+                                                <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                                                    <div class="text-center"><a class="btn btn-outline-dark mt-auto"
+                                                            href="{{ url_for('filmmaker.editStudio', studioId=studio[0]) }}">Edit</a></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+
+                    <!-- Find Crew tab-->
+                    <div class="tab-pane fade" id="find-crew" role="tabpanel" aria-labelledby="find-crew-tab">
+                        <div id="find-crew-view">
+                            <div class="row">
+                                <div class="col d-flex justify-content-between align-items-center">
+                                    <p class="mb-0">Find Crews</p>
+                                </div>
+                            </div>
+                            <hr />
+                            <section class="py-5">
+                                <div class="columns">
+                                    <div class="column is-one-third is-offset-one-third">
+                                        <form hx-get="/filmmaker/searchcrew" hx-target="#crew-results">
+                                            <input type="text" name="name" placeholder="Search crew name (optional)">
+                                            <br><br>
+                                            <select name="department" id="department" hx-get="/filmmaker/getjob" hx-target="#job">
+                                                <option value="" disabled selected>Select a department</option>
+                                                {% for i in department %}
+                                                <option value="{{ i }}">{{ i }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <br><br>
+                                            <select name="job" id="job">
+                                                <option disabled selected>Select a job</option>
+                                            </select>
+                                            <br><br>
+                                            <button type="submit">Search</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <table class="table is-fullwidth">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Gender</th>
+                                            <th>Job</th>
+                                            <th>Department</th>
+                                            <th>Film Title</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="crew-results">
+                                    </tbody>
+                                </table>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+    </main>
+    {% include "footer.html" %}
+    <!-- Data for Chart JS -->
+    <script>
+        var genresData = {{ genresData | tojson | safe }};
+        var countryData = {{ countryData | tojson | safe }};
+        var companiesData = {{ companiesData | tojson | safe }};
+        var boxOfficeData = {{ boxOfficeData | tojson | safe }};
+        var runtimeData = {{ runtimeData | tojson | safe }};
+        var budgetData = {{ budgetData | tojson | safe }};
+
+
+
+    </script>
+    <!-- Google Charts JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="../static/JS/Charts.js"></script>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+
+    <!--jQuery-->
+    <script defer src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous">
+        </script>
+    <!--Bootstrap JS-->
+    <script defer src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"
+        integrity="sha384-6khuMg9gaYr5AxOqhkVIODVIvm9ynTT5J4V1cfthmT+emCG6yVmEZsRHdxlotUnm" crossorigin="anonymous">
+        </script>
+    <!-- Custom JS -->
+    <script src="https://kit.fontawesome.com/926cf4293a.js" crossorigin="anonymous"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,438 @@
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles/profilepage.css') }}">
+
+   
+    <!-- Custom JS -->
+    <script src="https://kit.fontawesome.com/926cf4293a.js" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='JS/AddScreening.js') }}"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css" rel="stylesheet" />
+
+    {% include "header.html" %}
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    {% include "navbar.html" %}
+    <div class="container">
+        <div class="row justify-content-center align-items-center" style="min-height: 100vh; padding-top: 2%;">
+            <div class="card bg-light mb-3" style="max-width: 80rem;">
+                <div class="card-body">
+                    <div id="studio-owned-check">
+                        <div class="row row gx-lg-5">
+                            <div class="col align-self-center">
+                                Create Film
+                            </div>
+                        </div>
+                        <hr />
+
+                        <form method="POST" enctype="multipart/form-data">
+                            <div class="row justify-content-center">
+                                <!--Movie Poster -->
+                                <div class="col-12 col-md-8">
+                                    <div class="row justify-content-center">
+                                        <div class="col-5 col-md-12">
+                                            <label for="movie_poster">Film Poster</label>
+                                        </div>
+                                        <div class="col-6 col-md-12">
+                                            <img src="data:image/png;base64,{{ film_poster }}" alt="Film Poster" id="movie_poster_image" style="max-width: 100%; height: auto;">
+                                            <label for="movie_poster">Update Film Poster:</label>
+                                            <input type="file" id="movie_poster" name="movie_poster" accept="image/*">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+
+                            <div class="row justify-content-center">
+                                <!--Movie name -->
+                                <div class="col-12 col-md-8">
+                                    <div class="row justify-content-center">
+                                        <div class="col-5 col-md-12">
+                                            <label for="movie_name">Film Name</label>
+                                        </div>
+                                        <div class="col-6 col-md-12">
+                                            <input type="text" id="movie_name" name="movie_name"
+                                                class="form-control movie_info" value="{{ film_name }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+
+                            <div class="row justify-content-center">
+                                <!--Movie synopsis -->
+                                <div class="col-12 col-md-8">
+                                    <div class="row justify-content-center">
+                                        <div class="col-5 col-md-12">
+                                            <label for="movie_synopsis">Film Synopsis</label>
+                                        </div>
+                                        <div class="col-6 col-md-12">
+                                            <textarea id="movie_synopsis" name="movie_synopsis">{{ film_synopsis }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+
+                            <div class="row justify-content-center">
+                                <!--Movie casts -->
+                                <div class="col-12 col-md-8">
+                                    <div class="row justify-content-center">
+                                        <div class="col-5 col-md-12">
+                                            <label for="cast-select">Film Casts</label>
+                                        </div>
+                                        <div class="col-6 col-md-12">
+                                            <select class="cast-select[]" id="cast-select" multiple="multiple" name="cast-select[]" style="width: 100%">
+                                                {% for i in film_casts %}
+                                                <option selected value="{{ i }}">{{ i }}</option>
+                                                {% endfor %}
+                                                {% for cast in casts %}
+                                                <option value="{{ cast }}">{{ cast }}</option>
+                                                {% endfor %}
+                                                
+                                            </select>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <br />
+
+
+                            <div class="row justify-content-center">
+                                <!--Genre of the movie-->
+                                <div class="col-12 col-md-4">
+                                    <div class="row justify-content-center">
+                                        <div class="col-5 col-md-12">
+                                            <label for="movie_genre">Film Genre</label>
+                                        </div>
+                                        <div class="col-6 col-md-12">
+                                            <input type="text" id="movie_genre" name="movie_genre"
+                                                class="form-control movie_info" value="{{ film_genre }}">
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--Language of the movie-->
+                                <div class="col-12 col-md-4">
+                                    <div class="row justify-content-center">
+                                        <div class="col-5 col-md-12">
+                                            <label for="movie_language">Language</label>
+                                        </div>
+                                        <div class="col-6 col-md-12">
+                                            <input type="text" id="movie_language" name="movie_language"
+                                                class="form-control movie_info" value="{{ film_language }}">
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <br>
+
+                            <div class="row justify-content-center">
+                                <!--Rating of the movie-->
+                                <div class="col-12 col-md-4">
+                                    <div class="row justify-content-center">
+                                        <div class="col-5 col-md-12">
+                                            <label for="movie_rating">Maturity Rating</label>
+                                        </div>
+                                        <div class="col-6 col-md-12">
+                                            <input type="text" id="movie_rating" name="movie_rating"
+                                                class="form-control movie_info" value="{{ film_maturity_rating }}">
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--Duration of the movie-->
+                                <div class="col-12 col-md-4">
+                                    <div class="row justify-content-center">
+                                        <div class="col-5 col-md-12">
+                                            <label for="movie_duration">Duration(minutes)</label>
+                                        </div>
+                                        <div class="col-6 col-md-12">
+                                            <input type="text" id="movie_duration" name="movie_duration"
+                                                class="form-control movie_info" value="{{ film_runtime }}">
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!--Release date of the movie-->
+                                <div class="col-12 col-md-4">
+                                    <div class="row justify-content-center">
+                                        <div class="col-5 col-md-12">
+                                            <label for="movie_release_date">PlannedReleaseDate</label>
+                                        </div>
+                                        <div class="col-6 col-md-12">
+                                            <input type="date" id="movie_release_date" name="movie_release_date"
+                                                class="form-control movie_info" value="{{ film_release_date }}">
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <br>
+                            <br />
+
+                                                        <div class="row row gx-lg-5">
+                                <div class="col align-self-center">
+                                    Current Film Screenings
+                                </div>
+                            </div>
+
+                            <hr>
+                            {% if film_screenings %}
+                            <!--Headings-->
+                            <div class="row justify-content-center">
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                          Studio
+                                        </div>
+                                    </div>
+                                </div>
+
+                                 <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                          Date
+                                        </div>
+                                    </div>
+                                </div>
+
+                                 <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                          Time
+                                        </div>
+                                    </div>
+                                </div>
+
+                                 <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                          Capacity
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                          Price ($)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                 <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                          Status
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <br>
+                             {% for screening in film_screenings %}
+                            <div class="row justify-content-center">
+                                <!--Studio of the movie-->
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                            <input type="text"
+                                            class="form-control movie_info" value="{{ screening.screening_studio }}" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                            <input type="text"
+                                                class="form-control movie_info" value="{{ screening.screening_date }}"readonly>
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+
+                                        <div class="col-6 col-md-12">
+                                            <input type="time"
+                                                class="form-control movie_info" value="{{ screening.screening_time }}"readonly>
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                            <input type="text"
+                                                class="form-control movie_info" value="{{ screening.screening_capacity }} / {{ screening.screening_original_capacity }}"readonly>
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                            <input type="text"
+                                                class="form-control movie_info" value="{{ screening.screening_price }}"readonly>
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                            <input type="text"
+                                                class="form-control movie_info" value="{{ screening.screening_status }}"readonly>
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                             <br>
+                             {% endfor %}
+                                <br>
+
+
+                            <div class="row row gx-lg-5">
+                                <div class="col align-self-center">
+                                    Add Film Screenings
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <div class="row justify-content-center">
+                                <!--Studio of the movie-->
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                            <select class="form-control movie_info" id="screening_studio"
+                                                name="screening_studio">
+                                                {% for studio in studios %}
+                                                <option value="{{ studio[1] }}">{{ studio[1] }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                            <input type="date" id="screening_date" name="screening_date"
+                                                class="form-control movie_info" value="" placeholder="Select Date">
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+
+                                        <div class="col-6 col-md-12">
+                                            <input type="time" id="screening_time" name="screening_time"
+                                                class="form-control movie_info" value="" placeholder="Select Timeslot">
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                            <input type="text" id="screening_capacity" name="screening_capacity"
+                                                class="form-control movie_info" value="" placeholder="Input Capacity">
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                            <input type="text" id="screening_price" name="screening_price"
+                                                class="form-control movie_info" value="" placeholder="Input Price($)">
+                                            <br class="d-block d-md-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                            <button type="button" class="btn btn-secondary btn-md btn-block"
+                                                formmethod="post" onclick="AddScreening()">Create</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <br />
+                            <input type="hidden" id="numRows" name="numRows" value=0>
+                            <div id="screenings"></div>
+
+                            <br />
+
+                            <div class="row justify-content-center">
+                                <!-- Confirm Button -->
+                                <div class="col-12 col-md-8">
+                                    <div class="row justify-content-center">
+                                        <div class="col-6 col-md-12">
+                                            <button type="submit" formmethod="post"
+                                                class="btn btn-success btn-lg btn-block" name="button" value="update">Update</button>
+                                            <button type="submit" formmethod="post"
+                                                class="btn btn-danger btn-lg btn-block" name="button" value="delete">Delete</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        <br />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "footer.html" %}
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+    <script>
+         $(document).ready(function() {
+            $('#cast-select').select2({
+                tags: true
+                });
+            });
+    </script>
+</body>
+
+</html>

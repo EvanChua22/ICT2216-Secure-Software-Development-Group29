@@ -1,0 +1,20 @@
+<html lang="en">
+    {% include 'header.html' %}
+    <link href="{{ url_for('static',filename='styles/styles.css') }}" rel="stylesheet" />
+    <body>
+        <!-- Navigation-->
+        {% include 'navbar.html' %}
+        
+        <head>
+            <title>Error Page</title>
+        </head>
+        <body>
+            <h1>Error Occurred</h1>
+            <p>{{ error_message }}</p>
+            <a href="{{ url_for('/') }}">Go back</a>
+        </body>
+
+        <!-- Footer-->
+        {% include 'footer.html'%}
+    </body>
+</html>
