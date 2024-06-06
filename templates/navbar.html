@@ -26,6 +26,9 @@
                     {% endif %}
                     {% if 'name' and 'role' not in session %}
                     <li class="nav-item">
+                        <a href="{{ url_for('register') }}" class="nav-link">Register</a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{{ url_for('login') }}" class="nav-link">Login</a>
                     </li>
                     {% endif %}

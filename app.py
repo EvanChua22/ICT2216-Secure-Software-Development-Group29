@@ -7,14 +7,29 @@ app.secret_key = 'your_secret_key'  # Provide a secret key for session managemen
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    if 'name' in session:
+        role = session.get('role')
+        if role == 'admin':
+            return redirect(url_for('enternew'))
+        elif role == 'seller':
+            return redirect(url_for('seller_home'))
+        elif role == 'buyer':
+            return redirect(url_for('buyer_home'))
+    return redirect(url_for('login'))
 
 
 # Home Page route
-@app.route("/home")
-def home():
-    if 'name' in session and session.get('role') == 'user':
-        return render_template("home.html", name=session['name'])
+@app.route("/buyer_home")
+def buyer_home():
+    if 'name' in session and session.get('role') == 'buyer':  
+        return render_template("buyer_home.html", name=session['name'])
+    else:
+        return redirect(url_for('login'))
+
+@app.route("/seller_home")
+def seller_home():
+    if 'name' in session and session.get('role') == 'seller':  
+        return render_template("seller_home.html", name=session['name'])
     else:
         return redirect(url_for('login'))
 
@@ -42,10 +57,13 @@ def login():
                 if role == role:
                     session['name'] = name
                     session['role'] = role
-                    if role == "user":
-                        return redirect(url_for('home'))
-                    elif role == "admin":
+                    if role == "admin":
                         return redirect(url_for('enternew'))
+                    elif role == "buyer":
+                        return redirect(url_for('buyer_home'))
+                    elif role == "seller":
+                        return redirect(url_for('seller_home'))
+                        
                 else:
                     flash('Invalid identity', 'error')
             else:
@@ -81,18 +99,17 @@ def register():
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "INSERT INTO Users (name, password, phoneNum, email, role) VALUES "
-                " (?, ?, ?, ?, ?)",
+                ''' INSERT INTO Users (name, password, phoneNum, email, role, created_at) VALUES  (?, ?, ?, ?, ?, datetime('now'))''',
                 (
                     name,
                     password,
                     phone_number,
                     email,
                     role,
-                ),
+                )
             )
             conn.commit()
-
+            conn.close()
             flash("Your account has been successfully created!", "Success")
             return redirect(url_for("login"))
     

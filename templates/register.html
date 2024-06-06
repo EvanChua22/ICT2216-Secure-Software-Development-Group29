@@ -6,13 +6,23 @@
             <div class="d-flex flex-column min-vh-75" style = "padding-top: 2%; padding-bottom: 2%;">
                 <div class="card align-self-center bg-light border-light">
                     <div class="card-body mx-5">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }}" role="alert">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
                         <h3 class="fw-bold mb-4 pt-2 text-center">Register</h3>
                         <form method="POST">
                             <div class="form-group">
                                 <label for="gender">Account Type</label>
                                 <select class="form-select" name="role" aria-label="Select Identity" id="role">
                                     <option disabled selected>Select account type</option>
-                                    <option value="user">User</option>
+                                    <option value="buyer">Buyer</option>
+                                    <option value="seller">Seller</option>
                                     <option value="admin">Admin</option>
                                 </select>
                             </div>
