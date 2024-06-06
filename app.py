@@ -11,27 +11,25 @@ def index():
         role = session.get('role')
         if role == 'admin':
             return redirect(url_for('enternew'))
-        elif role == 'seller':
-            return redirect(url_for('seller_home'))
-        elif role == 'buyer':
-            return redirect(url_for('buyer_home'))
+        elif role == 'user':
+            return redirect(url_for('user_home'))
     return redirect(url_for('login'))
 
 
 # Home Page route
-@app.route("/buyer_home")
-def buyer_home():
-    if 'name' in session and session.get('role') == 'buyer':  
-        return render_template("buyer_home.html", name=session['name'])
+@app.route("/user_home")
+def user_home():
+    if 'name' in session and session.get('role') == 'user':  
+        return render_template("user_home.html", name=session['name'])
     else:
         return redirect(url_for('login'))
 
-@app.route("/seller_home")
+''' @app.route("/seller_home")
 def seller_home():
     if 'name' in session and session.get('role') == 'seller':  
         return render_template("seller_home.html", name=session['name'])
     else:
-        return redirect(url_for('login'))
+        return redirect(url_for('login')) '''
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -59,10 +57,8 @@ def login():
                     session['role'] = role
                     if role == "admin":
                         return redirect(url_for('enternew'))
-                    elif role == "buyer":
-                        return redirect(url_for('buyer_home'))
-                    elif role == "seller":
-                        return redirect(url_for('seller_home'))
+                    elif role == "user":
+                        return redirect(url_for('user_home'))
                         
                 else:
                     flash('Invalid identity', 'error')
