@@ -1,17 +1,122 @@
-from flask import Flask, render_template, request
+from flask import (Flask, flash, redirect, render_template, request, session, url_for)
 import sqlite3
+from werkzeug.security import check_password_hash
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Provide a secret key for session management
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
 
 # Home Page route
-@app.route("/")
+@app.route("/home")
 def home():
-    return render_template("home.html")
+    if 'name' in session and session.get('role') == 'user':
+        return render_template("home.html", name=session['name'])
+    else:
+        return redirect(url_for('login'))
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        # Get the user input values from the input field
+        name = request.form.get("name")
+        password = request.form.get("password")
+        role = request.form.get("role")
+
+        # Connect to the database
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+
+        # Retrieve the user's hashed password from the database
+        cursor.execute("SELECT * FROM Users WHERE name = ?", (name,))
+        result = cursor.fetchone()
+
+        if result :
+            stored_password = result[2]
+            role = result[5]
+
+            if stored_password == password:
+                if role == role:
+                    session['name'] = name
+                    session['role'] = role
+                    if role == "user":
+                        return redirect(url_for('home'))
+                    elif role == "admin":
+                        return redirect(url_for('enternew'))
+                else:
+                    flash('Invalid identity', 'error')
+            else:
+                flash('Invalid username or password', 'error')
+        else:
+            flash('Invalid username or password', 'error')
+
+        # Close the connection to the database
+        conn.close()
+        return redirect(url_for('login'))
+
+    return render_template('login.html')
+
+@app.route("/logout")
+def logout():
+    # Clear the user's session
+    session.clear()
+    # Redirect to the login page or home page after logout
+    return redirect(url_for('login'))
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+
+        name = request.form.get("name")
+        password = request.form.get("password")
+        phone_number = request.form.get("phoneNum")
+        email = request.form.get("email")        
+        role = request.form.get("role")
+
+        # Connect to the database
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO Users (name, password, phoneNum, email, role) VALUES "
+                " (?, ?, ?, ?, ?)",
+                (
+                    name,
+                    password,
+                    phone_number,
+                    email,
+                    role,
+                ),
+            )
+            conn.commit()
+
+            flash("Your account has been successfully created!", "Success")
+            return redirect(url_for("login"))
+    
+        except Exception as e:
+            # Handle database errors and display an error message
+            conn.rollback()
+            flash(
+                "An error has occured during registration. Please try again later.",
+                "error",
+            )
+            print("Error", e)
+        return redirect(url_for("register"))
+    else:
+        return render_template("register.html")
+
 
 # Route to form used to add a new user to the database
 @app.route("/enternew")
 def enternew():
-    return render_template("user.html")
+    if 'name' in session and session.get('role') == 'admin':
+        return render_template("user.html", name=session['name'])
+    else:
+        return redirect(url_for('login'))
+    
 
 # Route to add a new record (INSERT) user data to the database
 @app.route("/addrec", methods=['POST', 'GET'])
@@ -134,4 +239,5 @@ def delete():
             return render_template('result.html', msg=msg)
 
 if __name__ == '__main__':
+
     app.run(debug=True)

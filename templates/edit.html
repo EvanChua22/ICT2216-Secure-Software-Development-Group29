@@ -1,8 +1,14 @@
-{% extends "layout.html" %}
-{% block title %}
-Edit User
-{% endblock %}
-{% block content %}
+<html lang="en">
+    {% include "header.html" %}
+    <head>
+        {% include "navbar.html" %}
+       <!-- 
+        {% block title %}
+        Edit User
+        {% endblock %}
+        {% block content %}-->
+    </head>
+    <body>
         <h1>Edit User Record</h1>
         {% for row in rows %}
         <form action="{{ url_for('editrec') }}" method="POST">
@@ -27,4 +33,7 @@ Edit User
             <input type="submit" value="Submit" /><br>
         </form>
         {% endfor %}
+    </body>
+    {% include "footer.html" %}
+</html>
 {% endblock %}

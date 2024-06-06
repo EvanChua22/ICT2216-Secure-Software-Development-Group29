@@ -1,7 +1,10 @@
-{% extends "layout.html" %}
-{% block title %}
-Transaction Result
-{% endblock %}
-{% block content %}
-        <strong>Result of the database transaction:</strong> {{ msg }}  
-{% endblock %}
+<html lang="en">
+      {% include "header.html" %}
+      <head>
+        {% include "navbar.html" %}
+      </head>
+      <body>
+        <strong>Result of the database transaction:</strong> {{ msg }} 
+      </body>
+      {% include "footer.html" %}
+</html>

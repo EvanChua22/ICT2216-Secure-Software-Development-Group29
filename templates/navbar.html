@@ -1,0 +1,36 @@
+<nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a href="{{ url_for('index') }}" class="navbar-brand">Home</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav mr-auto">
+                    {% if session['role'] == 'admin' %}
+                    <li class="nav-item">
+                        <a href="{{ url_for('enternew') }}" class="nav-link">Add User</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('list') }}" class="nav-link">Review and Edit User</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+            <div class="container justify-content-end">
+                <ul class="navbar-nav ml-auto">
+                    {% if 'name' and 'role' in session %}
+                    <li class="nav-item">
+                        <span class="nav-link">Welcome, {{ session['name'] }}</span>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+                    </li>
+                    {% endif %}
+                    {% if 'name' and 'role' not in session %}
+                    <li class="nav-item">
+                        <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+</nav>
+
+

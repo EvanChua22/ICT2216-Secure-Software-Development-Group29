@@ -1,8 +1,9 @@
-{% extends "layout.html" %}
-{% block title %}
-Add New User
-{% endblock %}
-{% block content %}
+<html lang="en">
+    {% include "header.html" %}
+    <head>
+        <title>Add user</title>
+        {% include "navbar.html" %}
+    </head>
     <form action="{{ url_for('addrec') }}" method="POST">
         <h3>Please Add the New User Information:</h3>
 
@@ -23,4 +24,4 @@ Add New User
 
         <input type="submit" value="Submit" /><br>
     </form>
-{% endblock %}
+</html>

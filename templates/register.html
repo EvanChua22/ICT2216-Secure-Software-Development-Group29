@@ -1,0 +1,57 @@
+<html lang="en">
+    {% include "header.html" %}
+    <body>
+        {% include "navbar.html" %}
+        <main class="container-fluid">
+            <div class="d-flex flex-column min-vh-75" style = "padding-top: 2%; padding-bottom: 2%;">
+                <div class="card align-self-center bg-light border-light">
+                    <div class="card-body mx-5">
+                        <h3 class="fw-bold mb-4 pt-2 text-center">Register</h3>
+                        <form method="POST">
+                            <div class="form-group">
+                                <label for="gender">Account Type</label>
+                                <select class="form-select" name="role" aria-label="Select Identity" id="role">
+                                    <option disabled selected>Select account type</option>
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="username">Name</label>
+                                <input type="text" name="name" class="form-control" id="Name" placeholder="Name">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="text" name="email" class="form-control" id="Email" placeholder="Email">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" name="password" class="form-control" id="Password" placeholder="Password">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phonenumber">Phone Number</label>
+                                <input type="number" name="phoneNum" class="form-control" id="phoneNum" placeholder="Phone Number">
+                            </div>
+                            <!--
+                            <div class="form-group">
+                                <label for="dob">Date of Birth</label>
+                                <input type="date" name="dob" class="form-control" id="DOB" placeholder="dd-mm-yy">
+                            </div>
+                            -->
+                        
+                            <button type="submit" class="btn btn-dark btn-block mb-4">Register</button>
+
+                            <p class="text-center">Already a member? <br class="d-md-none d-lg-none" />Login <a href="login">here</a>.</p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+        {% include "footer.html" %} 
+    </body>
+    
+</html>

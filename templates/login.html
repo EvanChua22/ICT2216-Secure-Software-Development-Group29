@@ -1,0 +1,44 @@
+<html lang="en">
+    {% include "header.html" %}
+    <body>
+        {% include "navbar.html" %}
+        <main class="container-fluid">
+            <div class="d-flex h-75 flex-column min-vh-100" style = "padding-top: 2%; padding-bottom: 2%;">
+                <div class="card align-self-center bg-light border-light">
+                    <div class="card-body mx-5">
+                        <h3 class="fw-bold mb-4 pt-2 text-center">Login</h3>
+                        <form method="POST">
+                            <!--Who are you-->
+                            <div class="form-group">
+                                <select class="form-select" name="role" aria-label="Select Identity" id="role">
+                                    <option disabled selected>Who are you?</option>
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <br />
+                            <!--Email Input-->
+                            <div class="form-group">
+                                <input class="form-control" name="name" type="text" id="name" maxlength="45" required name="name" placeholder="Name">
+                            </div>
+                            <br />
+                            <!--Password Input-->
+                            <div class="form-group">
+                                <input class="form-control" name="password" type="password" id="pwd" minlength="1" required name="pwd" placeholder="Password">
+                            </div>
+                            <br />
+                            <!--Submit button-->
+                            <button type="submit" class="btn btn-dark btn-block mb-4">Login</button>
+
+                            <p class="text-center">
+                            Not a member yet? <br class="d-md-none d-lg-none" />Register <a href="register">here</a>.
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+        {% include "footer.html" %}
+    </body>
+    
+</html>
