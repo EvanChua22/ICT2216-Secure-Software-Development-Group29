@@ -250,6 +250,61 @@ def delete():
             con.close()
             # Send the transaction message to result.html
             return render_template('result.html', msg=msg)
+        
+# Route View all products  
+@app.route('/view_products')
+def view_products():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT product_id, product_name, price, image_url FROM Products")
+    products = cursor.fetchall()
+    conn.close()
+    
+    # Converting the fetched data into a list of dictionaries
+    products_list = []
+    for product in products:
+        product_dict = {
+            'product_id': product[0],
+            'product_name': product[1],
+            'price': product[2],
+            'image_url': product[3]
+        }
+        products_list.append(product_dict)
+    
+    return render_template('view_products.html', products_list=products_list)
+
+@app.route('/product_details/<int:product_id>')
+def product_details(product_id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Fetch product details from the database based on the product_id
+    cursor.execute("SELECT * FROM Products WHERE product_id = ?", (product_id,))
+    product_details = cursor.fetchone()
+
+    # If product_details is not None, convert it to a dictionary for easy access in the template
+    if product_details:
+        product_dict = {
+            'product_id': product_details[0],
+            'user_id': product_details[1],
+            'product_name': product_details[2],
+            'description': product_details[3],
+            'price': product_details[4],
+            'size': product_details[5],
+            'condition': product_details[6],
+            'image_url': product_details[7],
+            'quantity': product_details[8],
+            'created_at': product_details[9],
+            'verified': product_details[10]
+        }
+    else:
+        product_dict = None
+
+    conn.close()
+    
+    # Pass the product details to the product_details.html template
+    return render_template('product_details.html', product=product_dict)
+
 
 if __name__ == '__main__':
 

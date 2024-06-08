@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% include "header.html" %}
+    <head>
+        {% include "navbar.html" %}
+        <style>
+            .product-img {
+                width: 100%; 
+                height: 600px; 
+                object-fit: cover; 
+            }
+            .btn-not-verified {
+                background-color: red;
+                color: white;
+                pointer-events: none; /* Disable pointer events */
+            }
+            .btn-not-verified:hover {
+                background-color: red;
+                color: white;
+                pointer-events: none; /* Disable pointer events */
+            }
+            .btn-verified {
+                background-color: green;
+                color: white;
+                pointer-events: none; /* Disable pointer events */
+            }
+            .btn-verified:hover {
+                background-color: green;
+                color: white;
+                pointer-events: none; /* Disable pointer events */
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Page Content -->
+        <div class="container mt-5">
+            <!-- Product Details Section -->
+            <div class="row">
+                <div class="col-md-6">
+                    <img src="{{ url_for('static', filename='productImg/' + product.image_url + '.jpg') }}" alt="{{ product.product_name }}" class="img-fluid mb-4 product-img">
+                </div>
+                <div class="col-md-6">
+                    <h2>{{ product.product_name }}</h2>
+                    <div class="row mt-4">
+                        <!-- Product Metadata Left -->
+                        <div class="col-md-6">
+                            <h5>Price</h5>
+                            <p>${{ product.price }}</p>
+                            <h5>Size</h5>
+                            <p>{{ product.size }}</p>
+                            <h5>Condition</h5>
+                            <p>{{ product.condition }}</p>
+                        </div>
+                        <!-- Product Metadata Right -->
+                        <div class="col-md-6">
+                            <h5>Description</h5>
+                            <p>{{ product.description }}</p>
+                            <h5>Quantity Available</h5>
+                            <p>{{ product.quantity }}</p>
+                            <h5>Created At</h5>
+                            <p>{{ product.created_at }}</p>
+                            {% if product.verified %}
+                            <button class="btn btn-verified">Verified</button>
+                            {% else %}
+                            <button class="btn btn-not-verified">Not Verified</button>
+                            {% endif %}
+                            <button class="btn btn-primary">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer -->
+        {% include "footer.html" %}
+    </body>
+</html>
