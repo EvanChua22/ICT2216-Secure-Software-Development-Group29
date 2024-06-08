@@ -1,13 +1,8 @@
-<!DOCTYPE html>
 <html lang="en">
     {% include "header.html" %}
-    <head>
-        {% include "navbar.html" %}
-        <style>
-        </style>
-    </head>
     <body>
-        <!-- Section - Products -->
+        {% include "navbar.html" %}
+        <!-- Page Content -->
         <section class="py-5">
             <div class="container px-4 px-lg-5 mt-5">
                 {% for i in range(0, products_list|length, 3) %}
@@ -15,20 +10,15 @@
                     {% for product in products_list[i:i+3] %}
                         <div class="col mb-5{% if loop.index == 3 and loop.first %} offset-md-2{% endif %}">
                             <div class="card h-100">
-                                <!-- Product image-->
-                                <img class="product-img" src="{{ url_for('static', filename='productImg/' + product.image_url + '.jpg') }}" alt="{{ product.product_name }}">
-                                <!-- Product details-->
+                                <img src="{{ url_for('static', filename='productImg/' + product.image_url + '.jpg') }}" class="card-img-top" alt="{{ product.product_name }}">
                                 <div class="card-body p-4">
                                     <div class="text-center">
-                                        <!-- Product name-->
-                                        <h5 class="fw-bolder">{{ product.product_name }}</h5>
-                                        <!-- Product price-->
+                                        <h5 class="card-title">{{ product.product_name }}</h5>
                                         <p>${{ product.price }}</p>
                                     </div>
                                 </div>
-                                <!-- Product actions-->
                                 <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                    <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="{{ url_for('product_details', product_id=product.product_id) }}">View Details</a></div>
+                                    <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="{{ url_for('my_products_details', product_id=product.product_id) }}">View Details</a></div>
                                 </div>
                             </div>
                         </div>
@@ -37,6 +27,6 @@
                 {% endfor %}
             </div>
         </section>
+        {% include "footer.html" %}
     </body>
-    {% include "footer.html" %}
-</html>
+    </html>

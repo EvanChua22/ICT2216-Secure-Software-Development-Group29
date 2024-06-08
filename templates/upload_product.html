@@ -1,0 +1,51 @@
+<html lang="en">
+    {% include "header.html" %}
+    <body>
+        {% include "navbar.html" %}
+        <main class="container-fluid">
+            <div class="d-flex h-75 flex-column min-vh-100" style = "padding-top: 2%; padding-bottom: 2%;">
+                <div class="card align-self-center bg-light border-light">
+                    <div class="card-body mx-5">
+                        <h3 class="fw-bold mb-4 pt-2 text-center">Upload Your Product</h3>
+                        <form method="POST" enctype="multipart/form-data">
+                            <!--Product Name-->
+                            <div class="form-group">
+                                <label for="product_name">Product Name:</label>
+                                <input class="form-control" name="product_name" type="text" id="product_name" required placeholder="Product Name">
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Description:</label>
+                                <textarea class="form-control" name="description" id="description" maxlength="300" required placeholder="Description of Product" cols="60" rows="5"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="price">Price:</label>
+                                <input class="form-control" name="price" type="number" step="0.01" id="price" required placeholder="Price">
+                            </div>
+                            <div class="form-group">
+                                <label for="size">Size:</label>
+                                <input class="form-control" name="size" type="text" id="size" required placeholder="Size">
+                            </div>
+                            <div class="form-group">
+                                <label for="condition">Condition:</label>
+                                <input class="form-control" name="condition" type="text" id="condition" required placeholder="Condition">
+                            </div>
+                            <div class="form-group">
+                                <label for="image">Product Image:</label>
+                                <input class="form-control-file" name="image" type="file" id="image" required>
+                                <img id="image-preview" src="#" alt="Image Preview">
+                            </div>
+                            <div class="form-group">
+                                <label for="quantity">Quantity:</label>
+                                <input class="form-control" name="quantity" type="number" id="quantity" required placeholder="Quantity">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Upload</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+        {% include "footer.html" %}
+        <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    </body>
+    
+</html>
