@@ -1,39 +1,59 @@
 <html lang="en">
-    {% include "header.html" %}
-    <head>
-        {% include "navbar.html" %}
-       <!-- 
-        {% block title %}
-        Edit User
-        {% endblock %}
-        {% block content %}-->
-    </head>
-    <body>
-        <h1>Edit User Record</h1>
-        {% for row in rows %}
-        <form action="{{ url_for('editrec') }}" method="POST">
-            <h3 style="color:blue">User ID: {{ row['user_id']}}</h3>
-            <input type="hidden" name="user_id" value="{{ row['user_id'] }}">
-            
-            Name<br>
-            <input type="text" name="name" value="{{ row['name'] }}"/><br>
+{% include "header.html" %}
 
-            Password<br>
-            <input type="password" name="password" value="{{ row['password'] }}"/><br>
-
-            Phone Number<br>
-            <input type="text" name="phoneNum" value="{{ row['phoneNum'] }}"/><br>
-
-            Email<br>
-            <input type="email" name="email" value="{{ row['email'] }}"/><br>
-
-            Role<br>
-            <input type="text" name="role" value="{{ row['role'] }}"/><br>
-
-            <input type="submit" value="Submit" /><br>
-        </form>
-        {% endfor %}
-    </body>
+<body>
+    {% include "navbar.html" %}
+    <main class="container-fluid">
+        <div class="d-flex h-75 flex-column min-vh-100" style="padding-top: 2%; padding-bottom: 2%;">
+            <div class="card align-self-center bg-light border-light">
+                <div class="card-body mx-5">
+                    <h3 class="fw-bold mb-4 pt-2 text-center">Edit User Record</h3>
+                    {% for row in rows %}
+                    <form action="{{ url_for('editrec') }}" method="POST">
+                        <input type="hidden" name="user_id" value="{{ row['user_id'] }}">
+                        <!-- User ID -->
+                        <div class="form-group">
+                            <h5 style="color:blue">User ID: {{ row['user_id'] }}</h5>
+                        </div>
+                        <!-- Name -->
+                        <div class="form-group">
+                            <label for="name">Name:</label>
+                            <input class="form-control" name="name" type="text" id="name" value="{{ row['name'] }}"
+                                required>
+                        </div>
+                        <!-- Password -->
+                        <div class="form-group">
+                            <label for="password">Password:</label>
+                            <input class="form-control" name="password" type="password" id="password"
+                                value="{{ row['password'] }}" required>
+                        </div>
+                        <!-- Phone Number -->
+                        <div class="form-group">
+                            <label for="phoneNum">Phone Number:</label>
+                            <input class="form-control" name="phoneNum" type="text" id="phoneNum"
+                                value="{{ row['phoneNum'] }}" required>
+                        </div>
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input class="form-control" name="email" type="email" id="email" value="{{ row['email'] }}"
+                                required>
+                        </div>
+                        <!-- Role -->
+                        <div class="form-group">
+                            <label for="role">Role:</label>
+                            <input class="form-control" name="role" type="text" id="role" value="{{ row['role'] }}"
+                                required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </main>
     {% include "footer.html" %}
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+
 </html>
-{% endblock %}
