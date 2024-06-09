@@ -42,6 +42,36 @@
                 </div>
             </div>
         </div>
+            <!-- Product Reviews Section -->
+            <div class="row mt-5">
+                <div class="col-md-12">
+                    <h3>Product Reviews</h3>
+                    {% for review in reviews %}
+                    <!-- Review Box -->
+                    <div class="border rounded mb-3 p-3">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p><strong>Date Reviewed:</strong> {{ review.created_at }}</p>
+                                <p><strong>Review by:</strong> {{ review.user_name }}</p>
+                                <p><strong>Rating:</strong> {{ review.rating }}/5</p>
+                                <p><strong>Review:</strong> {{ review.comment }}</p>
+                                {% if review.user_id == user_id %}
+                                <form action="{{ url_for('remove_review') }}" method="post" class="remove-review">
+                                    <input type="hidden" name="review_id" value="{{ review.review_id }}">
+                                    <button type="submit" class="btn btn-danger">Remove</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <!-- If there are no reviews -->
+                    {% if not reviews %}
+                    <p>No reviews yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         <!-- Footer -->
         {% include "footer.html" %}
     </body>

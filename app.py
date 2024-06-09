@@ -1,11 +1,13 @@
 import os
 from flask import (Flask, flash, redirect, render_template, request, session, url_for)
 import sqlite3
+from datetime import datetime
 from matplotlib import use
 from numpy import product
 from werkzeug.utils import secure_filename
 from functools import wraps
 from werkzeug.security import check_password_hash
+import sys
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Provide a secret key for session management
@@ -400,7 +402,23 @@ def product_details(product_id):
     conn.close()
     
     # Pass the product details to the product_details.html template
-    return render_template('product_details.html', product=product_dict, user_id=user_id)
+    return render_template('product_details.html', product=product_dict, reviews = products_reviews(product_id), user_id=user_id, product_id = product_id)
+
+def products_reviews(product_id):
+    user_id = session.get('user_id')
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+        # Fetch reviews
+    cursor.execute('''SELECT r.review_id, r.rating, r.comment, r.created_at, u.name 
+                          FROM Reviews r JOIN Users u ON r.user_id = u.user_id 
+                          WHERE r.product_id = ? ORDER BY r.created_at DESC''', (product_id,))
+    reviews = cursor.fetchall()
+    print(reviews)
+    review_list = [{'review_id': row[0], 'rating': row[1], 'comment': row[2], 'created_at': row[3], 'user_name': row[4]} for row in reviews]
+
+    conn.close()
+    
+    return review_list
 
 @app.route('/my_products')
 def my_products():
@@ -431,18 +449,15 @@ def my_products():
 
 @app.route('/my_products_details/<int:product_id>')
 def my_products_details(product_id):
-
-    if 'user_id' in session:  
-        user_id = session['user_id']
-
+    user_id = session.get('user_id')
+    review_list = my_products_reviews(product_id)
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
+    product_dict = None
 
-    # Fetch product details from the database based on the product_id
+    # Fetch product details
     cursor.execute("SELECT * FROM Products WHERE product_id = ?", (product_id,))
     product_details = cursor.fetchone()
-
-    # If product_details is not None, convert it to a dictionary for easy access in the template
     if product_details:
         product_dict = {
             'product_id': product_details[0],
@@ -457,13 +472,77 @@ def my_products_details(product_id):
             'created_at': product_details[9],
             'verified': product_details[10]
         }
-    else:
-        product_dict = None
+
+    conn.close()
+    print(product_details, file=sys.stderr)
+    print(review_list, file=sys.stderr)
+    
+    return render_template('my_products_details.html', product=product_dict, reviews=review_list, user_id=user_id, product_id = product_id)
+
+def my_products_reviews(product_id):
+    user_id = session.get('user_id')
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+        # Fetch reviews
+    cursor.execute('''SELECT r.review_id, r.rating, r.comment, r.created_at, u.name 
+                          FROM Reviews r JOIN Users u ON r.user_id = u.user_id 
+                          WHERE r.product_id = ? ORDER BY r.created_at DESC''', (product_id,))
+    reviews = cursor.fetchall()
+    print(reviews)
+    review_list = [{'review_id': row[0], 'rating': row[1], 'comment': row[2], 'created_at': row[3], 'user_name': row[4]} for row in reviews]
 
     conn.close()
     
-    # Pass the product details to the product_details.html template
-    return render_template('my_products_details.html', product=product_dict, user_id=user_id)
+    return review_list
+
+@app.route('/product_review/<int:product_id>')
+def product_review(product_id):
+    # Ensure user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Fetch product details to display on the review page
+    cursor.execute("SELECT * FROM Products WHERE product_id = ?", (product_id,))
+    product_details = cursor.fetchone()
+    conn.close()
+
+    # Convert product_details to a dictionary
+    if product_details:
+        product_dict = {
+            'product_id': product_details[0],
+            'product_name': product_details[2]
+        }
+    else:
+        product_dict = None
+
+    return render_template('product_review.html', product=product_dict)
+
+@app.route('/submit_review/<int:product_id>', methods=['POST'])
+def submit_review(product_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    rating = request.form['rating']
+    comment = request.form['comment']
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Insert the new review into the Reviews table
+    cursor.execute('''
+        INSERT INTO Reviews (product_id, user_id, rating, comment, created_at)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (product_id, user_id, rating, comment, created_at))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('view_products'))
 
 @app.route("/delete_product/<int:product_id>", methods=['POST'])
 def delete_product(product_id):

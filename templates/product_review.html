@@ -1,0 +1,35 @@
+<html lang="en">
+    {% include "header.html" %}
+    <body>
+        {% include "navbar.html" %}
+        <main class="container-fluid">
+            <div class="d-flex h-75 flex-column min-vh-100" style = "padding-top: 2%; padding-bottom: 2%;">
+                <div class="card align-self-center bg-light border-light">
+                    <div class="card-body mx-5">
+                        <h3>Write a Review for {{ product.product_name }}</h3>
+                        <form action="{{ url_for('submit_review', product_id=product.product_id) }}" method="post">
+                            <div class="form-group">
+                                <label for="rating">Rating (1-5):</label>
+                                <select id="rating" name="rating" class="form-control">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="comment">Comment:</label>
+                                <textarea id="comment" name="comment" class="form-control" rows="5"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+        {% include "footer.html" %}
+        <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    </body>
+    
+</html>
