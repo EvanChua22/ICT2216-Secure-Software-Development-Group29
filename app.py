@@ -866,39 +866,52 @@ def process_payment():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
-    # Insert into Orders table
-    cursor.execute('''INSERT INTO Orders (user_id, order_date, total_amount, status, tracking_num, shipping_address, created_at)
-                      VALUES (?, ?, ?, ?, ?, ?, ?)''', 
-                   (user_id, order_date, total_amount, status, tracking_num, shipping_address, order_date))
-    order_id = cursor.lastrowid
+    try:
+        # Start a transaction
+        conn.execute('BEGIN TRANSACTION')
 
-    # Fetch cart items
-    cursor.execute('''SELECT c.product_id, c.quantity, p.price 
-                      FROM Cart_Items c 
-                      JOIN Products p ON c.product_id = p.product_id 
-                      JOIN Shopping_Cart s ON c.cart_id = s.cart_id 
-                      WHERE s.user_id = ?''', (user_id,))
-    cart_items = cursor.fetchall()
+        # Insert into Orders table
+        cursor.execute('''INSERT INTO Orders (user_id, order_date, total_amount, status, tracking_num, shipping_address, created_at)
+                          VALUES (?, ?, ?, ?, ?, ?, ?)''', 
+                       (user_id, order_date, total_amount, status, tracking_num, shipping_address, order_date))
+        order_id = cursor.lastrowid
 
-    # Insert into Order_Items table
-    for item in cart_items:
-        product_id, quantity, price = item
-        cursor.execute('''INSERT INTO Order_Items (order_id, product_id, quantity, price)
-                          VALUES (?, ?, ?, ?)''', (order_id, product_id, quantity, price))
+        # Fetch cart items
+        cursor.execute('''SELECT c.product_id, c.quantity, p.price 
+                          FROM Cart_Items c 
+                          JOIN Products p ON c.product_id = p.product_id 
+                          JOIN Shopping_Cart s ON c.cart_id = s.cart_id 
+                          WHERE s.user_id = ?''', (user_id,))
+        cart_items = cursor.fetchall()
 
-    # Insert into Payments table
-    payment_date = order_date
-    cursor.execute('''INSERT INTO Payments (order_id, payment_amt, payment_method, payment_date, status)
-                      VALUES (?, ?, ?, ?, ?)''', (order_id, total_amount, payment_method, payment_date, status))
+        # Insert into Order_Items table
+        for item in cart_items:
+            product_id, quantity, price = item
+            cursor.execute('''INSERT INTO Order_Items (order_id, product_id, quantity, price)
+                              VALUES (?, ?, ?, ?)''', (order_id, product_id, quantity, price))
 
-    # Clear the cart
-    cursor.execute('''DELETE FROM Cart_Items WHERE cart_id IN 
-                      (SELECT cart_id FROM Shopping_Cart WHERE user_id = ?)''', (user_id,))
+            # Update product quantity
+            cursor.execute('''UPDATE Products SET quantity = quantity - ? WHERE product_id = ?''', (quantity, product_id))
 
-    conn.commit()
-    conn.close()
+        # Insert into Payments table
+        payment_date = order_date
+        cursor.execute('''INSERT INTO Payments (order_id, payment_amt, payment_method, payment_date, status)
+                          VALUES (?, ?, ?, ?, ?)''', (order_id, total_amount, payment_method, payment_date, status))
 
-    return render_template('success.html')
+        # Clear the cart
+        cursor.execute('''DELETE FROM Cart_Items WHERE cart_id IN 
+                          (SELECT cart_id FROM Shopping_Cart WHERE user_id = ?)''', (user_id,))
+
+        conn.commit()
+        return render_template('success.html')
+
+    except Exception as e:
+        # Rollback the transaction if there's any error
+        conn.rollback()
+        return jsonify({'error': str(e)})
+
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
