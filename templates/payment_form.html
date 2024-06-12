@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include "header.html" %}
+<head>
+    {% include "navbar.html" %}
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles/payment.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <form class="Payment" action="{{ url_for('process_payment') }}" method="POST">
+            <h2 class="text-center mb-4">Payment Details</h2>
+            <div class="input-container">
+                <input type="text" class="form-control p" id="shipping_address" name="shipping_address" required>
+                <div class="placeholder">Shipping Address</div>
+            </div>
+
+            <div class="input-container">
+                <select class="form-control p" id="payment_method" name="payment_method" required
+                        oninput="
+                        if (this.value != '') {
+                            this.classList.add('valid');
+                            this.classList.remove('invalid');
+                            document.getElementById('invalid-card').style.display = 'none';
+                        } else {
+                            this.classList.remove('valid');
+                            this.classList.add('invalid');
+                            document.getElementById('invalid-card').style.display = 'block';
+                        }">
+                    <option value="">Select Payment Method</option>
+                    <option value="Visa">Visa</option>
+                    <option value="Mastercard">Mastercard</option>
+                </select>
+            </div>
+            <div id="invalid-card" style="display: none;">Please select a payment method</div>
+
+            <div class="input-container">
+                <input type="text" class="form-control p" id="card_number" name="card_number" maxlength="19" placeholder="" required
+                       oninput="
+                       this.value = this.value.replace(/[^0-9]/g, '');
+                       let cardNumber = this.value.replace(/\s/g, '');
+                       let formattedValue = '';
+                       for (let i = 0; i < cardNumber.length; i += 4) {
+                           formattedValue += cardNumber.substr(i, 4) + ' ';
+                       }
+                       this.value = formattedValue.trim();
+                       
+                       let paymentMethod = document.getElementById('payment_method').value;
+                       if ((paymentMethod === 'Visa' && cardNumber.startsWith('4') && cardNumber.length === 16) ||
+                           (paymentMethod === 'Mastercard' && (cardNumber.startsWith('2') || cardNumber.startsWith('5')) && cardNumber.length === 16)) {
+                           this.classList.add('valid');
+                           this.classList.remove('invalid');
+                           document.getElementById('invalid-comment').style.display = 'none';
+                       } else {
+                           this.classList.add('invalid');
+                           this.classList.remove('valid');
+                           document.getElementById('invalid-comment').style.display = 'block';
+                       }">
+                <div class="placeholder">Card Number</div>
+            </div>
+            <div id="invalid-comment" style="display: none;">Please enter a valid Visa or Mastercard number</div>
+
+            <div class="input-container">
+                <input type="text" class="form-control p" id="expiry_date" name="expiry_date" maxlength="5" placeholder="" required
+                       oninput="
+                       this.value = this.value.replace(/[^0-9]/g, '');
+                       if (this.value.length >= 2) {
+                           this.value = this.value.substring(0, 2) + '/' + this.value.substring(2, 4);
+                       }
+                       if (/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(this.value)) {
+                           this.classList.add('valid');
+                           this.classList.remove('invalid');
+                           document.getElementById('invalid-date').style.display = 'none';
+                       } else {
+                           this.classList.add('invalid');
+                           this.classList.remove('valid');
+                           document.getElementById('invalid-date').style.display = 'block';
+                       }">
+                <div class="placeholder">Expiry Date (MM/YY)</div>
+            </div>
+            <div id="invalid-date" style="display: none;">Please enter a valid expiry date</div>
+
+            <div class="input-container">
+                <input type="password" class="form-control p" id="cvv" name="cvv" maxlength="3" placeholder="" required
+                       oninput="
+                       this.value = this.value.replace(/[^0-9]/g, '');
+                       if (this.value.length === 3) {
+                           this.classList.add('valid');
+                           this.classList.remove('invalid');
+                           document.getElementById('invalid-code').style.display = 'none';
+                       } else {
+                           this.classList.add('invalid');
+                           this.classList.remove('valid');
+                           document.getElementById('invalid-code').style.display = 'block';
+                       }">
+                <div class="placeholder">CVV</div>
+            </div>
+            <div id="invalid-code" style="display: none;">Please enter a valid CVV</div>
+            <input type="hidden" name="total_amount" value="{{ total_amount }}">
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary p" onclick="
+                        const cardNumber = document.getElementById('card_number');
+                        const paymentMethodSelect = document.getElementById('payment_method');
+                        const expiryDate = document.getElementById('expiry_date');
+                        const cvv = document.getElementById('cvv');
+    
+                        if (cardNumber.classList.contains('valid') && expiryDate.classList.contains('valid') && cvv.classList.contains('valid') && paymentMethodSelect.value) {
+                            return true;
+                        } else {
+                            if (!cardNumber.classList.contains('valid')) {
+                                document.getElementById('invalid-comment').style.display = 'block';
+                            }
+                            if (!expiryDate.classList.contains('valid')) {
+                                document.getElementById('invalid-date').style.display = 'block';
+                            }
+                            if (!cvv.classList.contains('valid')) {
+                                document.getElementById('invalid-code').style.display = 'block';
+                            }
+                            if (!paymentMethodSelect.value) {
+                                document.getElementById('invalid-card').style.display = 'block';
+                            }
+                            return false;
+                        }">Pay ${{ total_amount }}</button>
+            </div>
+        </form>
+    </div>
+    {% include "footer.html" %}
+</body>
+</html>

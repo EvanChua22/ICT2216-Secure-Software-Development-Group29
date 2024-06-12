@@ -720,5 +720,186 @@ def toggle_verified_route(product_id):
     return redirect(url_for("product_details", product_id=product_id))
 
 
+@app.route('/view_cart')
+def view_cart():
+    user_id = session.get('user_id')
+
+    if not user_id:
+        return redirect(url_for('login'))  # Redirect to login if user is not logged in
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''SELECT c.cart_item_id, p.product_name, p.price, c.quantity 
+                      FROM Cart_Items c 
+                      JOIN Products p ON c.product_id = p.product_id 
+                      JOIN Shopping_Cart s ON c.cart_id = s.cart_id 
+                      WHERE s.user_id = ?''', (user_id,))
+    cart_items = cursor.fetchall()
+
+    cursor.execute('''SELECT SUM(p.price * c.quantity)
+                      FROM Cart_Items c 
+                      JOIN Products p ON c.product_id = p.product_id 
+                      JOIN Shopping_Cart s ON c.cart_id = s.cart_id 
+                      WHERE s.user_id = ?''', (user_id,))
+    total_amount = cursor.fetchone()[0] or 0.00
+
+    conn.close()
+
+    return render_template('view_cart.html', cart_items=cart_items, total_amount=total_amount)
+
+
+@app.route('/add_to_cart', methods=['POST'])
+def add_to_cart():
+    user_id = session.get('user_id')
+    product_id = request.form.get('product_id')
+    quantity = int(request.form.get('quantity', 1))  # Default quantity to 1 if not provided
+
+    if not user_id:
+        return redirect(url_for('login'))  # Redirect to login if user is not logged in
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Check if a cart exists for this user
+    cursor.execute("SELECT cart_id FROM Shopping_Cart WHERE user_id = ?", (user_id,))
+    cart = cursor.fetchone()
+
+    if cart:
+        cart_id = cart[0]
+    else:
+        # Create a new cart for the user if it doesn't exist
+        cursor.execute("INSERT INTO Shopping_Cart (user_id) VALUES (?)", (user_id,))
+        cart_id = cursor.lastrowid
+
+    # Check if the product is already in the cart
+    cursor.execute("SELECT quantity FROM Cart_Items WHERE cart_id = ? AND product_id = ?", (cart_id, product_id))
+    cart_item = cursor.fetchone()
+
+    if cart_item:
+        # Update the quantity if the product is already in the cart
+        new_quantity = cart_item[0] + quantity
+        cursor.execute("UPDATE Cart_Items SET quantity = ? WHERE cart_id = ? AND product_id = ?", (new_quantity, cart_id, product_id))
+    else:
+        # Add the product to the cart if it is not already there
+        cursor.execute("INSERT INTO Cart_Items (cart_id, product_id, quantity) VALUES (?, ?, ?)", (cart_id, product_id, quantity))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('my_products_details', product_id=product_id))
+
+@app.route('/remove_from_cart', methods=['POST'])
+def remove_from_cart():
+    user_id = session.get('user_id')
+    cart_item_id = request.form.get('cart_item_id')
+
+    if not user_id:
+        return redirect(url_for('login'))  # Redirect to login if user is not logged in
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM Cart_Items WHERE cart_item_id = ? AND cart_id IN (SELECT cart_id FROM Shopping_Cart WHERE user_id = ?)", (cart_item_id, user_id))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('view_cart'))
+
+@app.route('/update_cart', methods=['POST'])
+def update_cart():
+    user_id = session.get('user_id')
+    cart_item_id = request.form.get('cart_item_id')
+    quantity = int(request.form.get('quantity'))
+
+    if not user_id:
+        return redirect(url_for('login'))  # Redirect to login if user is not logged in
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE Cart_Items SET quantity = ? WHERE cart_item_id = ? AND cart_id IN (SELECT cart_id FROM Shopping_Cart WHERE user_id = ?)", (quantity, cart_item_id, user_id))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('view_cart'))
+
+@app.route('/proceed_to_payment', methods=['GET', 'POST'])
+def proceed_to_payment():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))  # Redirect to login if user is not logged in
+
+    # Fetch the cart items and total amount
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('''SELECT c.cart_item_id, p.product_name, p.price, c.quantity 
+                      FROM Cart_Items c 
+                      JOIN Products p ON c.product_id = p.product_id 
+                      JOIN Shopping_Cart s ON c.cart_id = s.cart_id 
+                      WHERE s.user_id = ?''', (user_id,))
+    cart_items = cursor.fetchall()
+
+    cursor.execute('''SELECT SUM(p.price * c.quantity)
+                      FROM Cart_Items c 
+                      JOIN Products p ON c.product_id = p.product_id 
+                      JOIN Shopping_Cart s ON c.cart_id = s.cart_id 
+                      WHERE s.user_id = ?''', (user_id,))
+    total_amount = cursor.fetchone()[0] or 0.00
+    conn.close()
+
+    return render_template('payment_form.html', total_amount=total_amount, cart_items=cart_items)
+
+@app.route('/process_payment', methods=['POST'])
+def process_payment():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))  # Redirect to login if user is not logged in
+
+    shipping_address = request.form['shipping_address']
+    payment_method = request.form['payment_method']
+    total_amount = request.form['total_amount']
+    order_date = datetime.now()
+    status = 'Pending'  # Initial status of the order
+    tracking_num = ''  # Initially empty, will be updated when the order is shipped
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Insert into Orders table
+    cursor.execute('''INSERT INTO Orders (user_id, order_date, total_amount, status, tracking_num, shipping_address, created_at)
+                      VALUES (?, ?, ?, ?, ?, ?, ?)''', 
+                   (user_id, order_date, total_amount, status, tracking_num, shipping_address, order_date))
+    order_id = cursor.lastrowid
+
+    # Fetch cart items
+    cursor.execute('''SELECT c.product_id, c.quantity, p.price 
+                      FROM Cart_Items c 
+                      JOIN Products p ON c.product_id = p.product_id 
+                      JOIN Shopping_Cart s ON c.cart_id = s.cart_id 
+                      WHERE s.user_id = ?''', (user_id,))
+    cart_items = cursor.fetchall()
+
+    # Insert into Order_Items table
+    for item in cart_items:
+        product_id, quantity, price = item
+        cursor.execute('''INSERT INTO Order_Items (order_id, product_id, quantity, price)
+                          VALUES (?, ?, ?, ?)''', (order_id, product_id, quantity, price))
+
+    # Insert into Payments table
+    payment_date = order_date
+    cursor.execute('''INSERT INTO Payments (order_id, payment_amt, payment_method, payment_date, status)
+                      VALUES (?, ?, ?, ?, ?)''', (order_id, total_amount, payment_method, payment_date, status))
+
+    # Clear the cart
+    cursor.execute('''DELETE FROM Cart_Items WHERE cart_id IN 
+                      (SELECT cart_id FROM Shopping_Cart WHERE user_id = ?)''', (user_id,))
+
+    conn.commit()
+    conn.close()
+
+    return render_template('success.html')
+
+
 if __name__ == "__main__":
     app.run(debug=True)
