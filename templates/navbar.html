@@ -1,64 +1,10 @@
 <nav class="navbar navbar-expand-lg">
-<<<<<<< Updated upstream
-        <div class="container-fluid">
-            <a href="{{ url_for('index') }}" class="navbar-brand">Home</a>
-            <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mr-auto">
-                    {% if session['role'] == 'admin' %}
-                    <li class="nav-item">
-                        <a href="{{ url_for('enternew') }}" class="nav-link">Add User</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('list') }}" class="nav-link">Review and Edit User</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('view_products') }}" class="nav-link">Products</a>
-                    </li>
-                    {% endif %}
-                    {% if 'role' in session and session['role'] != 'admin' %}
-                    <li class="nav-item">
-                        <a href="{{ url_for('view_products') }}" class="nav-link">Products</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('upload_product') }}" class="nav-link">Add Products</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('my_products') }}" class="nav-link">My Products</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-            <div class="container justify-content-end">
-                <ul class="navbar-nav ml-auto">
-                    {% if 'name' and 'role' in session %}
-                    <li class="nav-item">
-                        <span class="nav-link">Welcome, {{ session['name'] }}</span>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('view_profile') }}" class="nav-link"><i class="fas fa-user"></i> My Profile</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
-                    </li>
-                    {% endif %}
-                    {% if 'name' and 'role' not in session %}
-                    <li class="nav-item">
-                        <a href="{{ url_for('register') }}" class="nav-link">Register</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('login') }}" class="nav-link">Login</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-=======
     <div class="container-fluid">
         <a href="{{ url_for('index') }}" class="navbar-brand">Home</a>
-        <div class="collapse navbar-collapse">
+        <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">            
             <ul class="navbar-nav mr-auto">
                 {% if session['role'] == 'admin' %}
                 <li class="nav-item">
@@ -92,6 +38,9 @@
                 <span class="nav-link">Welcome, {{ session['name'] }}</span>
             </li>
             <li class="nav-item">
+                <a href="{{ url_for('view_profile') }}" class="nav-link"><i class="fas fa-user"></i> My Profile</a>
+            </li>
+            <li class="nav-item">
                 <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
             </li>
             <li class="nav-item">
@@ -110,5 +59,4 @@
             {% endif %}
         </ul>
     </div>
->>>>>>> Stashed changes
 </nav>
