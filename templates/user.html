@@ -1,27 +1,30 @@
 <html lang="en">
     {% include "header.html" %}
-    <head>
-        <title>Add user</title>
+    <body>
         {% include "navbar.html" %}
-    </head>
-    <form action="{{ url_for('addrec') }}" method="POST">
-        <h3>Please Add the New User Information:</h3>
+    </body>
+    <main class="container-fluid">
+        <div class="d-flex h-75 flex-column min-vh-100" style = "padding-top: 2%; padding-bottom: 2%;">
+            <div class="card align-self-center bg-light border-light">
+                <div class="card-body mx-5">
+                    <h2 class="fw-bold mb-4 pt-2 text-center">Add Users</h2>
+                    <form action="{{ url_for('addrec') }}" method="POST">
+                    <h3>Please Add the New User Information:</h3>
+                    Name<br>
+                    <input type="text" name="name" /><br>
 
-        Name<br>
-        <input type="text" name="name" /><br>
+                    Password<br>
+                    <input type="password" name="password" /><br>
 
-        Password<br>
-        <input type="password" name="password" /><br>
+                    Phone Number<br>
+                    <input type="text" name="phoneNum" /><br>
 
-        Phone Number<br>
-        <input type="text" name="phoneNum" /><br>
+                    Email<br>
+                    <input type="email" name="email" /><br>
 
-        Email<br>
-        <input type="email" name="email" /><br>
-
-        Role<br>
-        <input type="text" name="role" /><br>
-
-        <input type="submit" value="Submit" /><br>
-    </form>
+                    Role<br>
+                    <input type="text" name="role" /><br>
+                    <br>
+                    <input type="submit" value="Submit" /><br>
+                </form>
 </html>

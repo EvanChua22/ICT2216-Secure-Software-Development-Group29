@@ -1,0 +1,19 @@
+<html lang="en">
+    {% include "header.html" %}
+    <body>
+        {% include "navbar.html" %}
+        <main class="container-fluid">
+            <div class="d-flex h-75 flex-column min-vh-100" style = "padding-top: 2%; padding-bottom: 2%;">
+                <div class="card align-self-left bg-light border-light">
+                    <h1>User Profile</h1>
+                    <p><strong>Username:</strong> {{ user.name }}</p>
+                    <p><strong>Phone Number:</strong> {{ user.phoneNum }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+        {% include "footer.html" %}
+    </body>
+    
+</html>

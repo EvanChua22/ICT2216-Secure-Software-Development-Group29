@@ -102,6 +102,35 @@ def login():
 
     return render_template("login.html")
 
+@app.route("/view_profile")
+def view_profile():
+    if "user_id" not in session:
+        return redirect(url_for('login'))
+
+    user_id = session["user_id"]
+    
+    # Connect to the SQLite database
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    
+    # Execute a query to fetch the user details
+    cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+    user = cursor.fetchone()
+    
+    # Close the connection
+    conn.close()
+
+    if user:
+        # Map the result to a dictionary for easier access in the template
+        user_info = {
+            'name': user[1],
+            'email': user[4],
+            'phoneNum': user[3],
+        }
+        return render_template('view_profile.html', user=user_info)
+    else:
+        flash('User not found', 'danger')
+        return redirect(url_for('login'))
 
 @app.route("/logout")
 def logout():
