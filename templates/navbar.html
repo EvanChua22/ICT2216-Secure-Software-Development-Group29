@@ -1,6 +1,8 @@
 <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
+        {% if 'role' in session and session['role'] != 'admin' %}
         <a href="{{ url_for('index') }}" class="navbar-brand">Home</a>
+        {% endif %}
         <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -41,13 +43,15 @@
             <li class="nav-item">
                 <a href="{{ url_for('view_profile') }}" class="nav-link"><i class="fas fa-user"></i> My Profile</a>
             </li>
-            <li class="nav-item">
-                <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
-            </li>
+            {% if session['role'] != 'admin' %}
             <li class="nav-item">
                 <a href="{{ url_for('view_cart') }}" class="nav-link">
                     <i class="fas fa-shopping-cart"></i> Cart
                 </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
             </li>
             {% endif %}
             {% if 'name' and 'role' not in session %}
