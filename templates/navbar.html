@@ -1,10 +1,11 @@
 <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
         <a href="{{ url_for('index') }}" class="navbar-brand">Home</a>
-        <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">            
+        <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mr-auto">
                 {% if session['role'] == 'admin' %}
                 <li class="nav-item">
@@ -14,7 +15,7 @@
                     <a href="{{ url_for('list') }}" class="nav-link">Review and Edit User</a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ url_for('view_products') }}" class="nav-link">Products</a>
+                    <a href="{{ url_for('view_products_admin') }}" class="nav-link">Products</a>
                 </li>
                 {% endif %}
                 {% if 'role' in session and session['role'] != 'admin' %}

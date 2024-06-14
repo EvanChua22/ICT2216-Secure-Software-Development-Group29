@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% include "header.html" %}
+    {% include "navbar.html" %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        th {
+            font-family: "Poppins", sans-serif;
+        }
+
+        .product-img {
+            max-width: 100px;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="mb-3">
+            <label for="verificationFilter">Filter by Verification:</label>
+            <select id="verificationFilter" class="form-control" onchange="filterTable()">
+                <option value="all">All</option>
+                <option value="verified">Verified</option>
+                <option value="not_verified">Not Verified</option>
+            </select>
+        </div>
+
+        <table id="productTable" class="table table-hover">
+            <thead class="thead-light">
+                <tr>
+                    <th>Product ID</th>
+                    <th>User ID</th>
+                    <th>Product Name</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Size</th>
+                    <th>Condition</th>
+                    <th>Image</th>
+                    <th>Quantity</th>
+                    <th>Created At</th>
+                    <th>Verified</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>{{ row["product_id"] }}</td>
+                    <td>{{ row["user_id"] }}</td>
+                    <td>{{ row["product_name"] }}</td>
+                    <td>{{ row["description"] }}</td>
+                    <td>${{ row["price"] }}</td>
+                    <td>{{ row["size"] }}</td>
+                    <td>{{ row["condition"] }}</td>
+                    <td><img class="product-img" src="{{ url_for('static', filename='productImg/' + row["image_url"]
+                            + '.jpg' ) }}" alt="{{ row[" product_name"] }}"></td>
+                    <td>{{ row["quantity"] }}</td>
+                    <td>{{ row["created_at"]}}</td>
+                    <td>
+                        <form action="{{ url_for('toggle_verified_route', product_id=row["product_id"]) }}"
+                            method="POST">
+                            <input type="hidden" name="product_id" value="{{ row["product_id"] }}">
+                            <button type="submit" class="btn btn-sm {{ 'btn-success' if row["verified"]
+                                else 'btn-secondary' }}">
+                                {{ 'Verified' if row["verified"] else 'Not Verified' }}
+                            </button>
+                        </form>
+                    </td>
+                    <td class="text-center">
+                        <form onsubmit="return confirm('Are you sure you want to delete this product?');"
+                            action="{{ url_for('delete_product', product_id=row["product_id"]) }}" method="POST"
+                            class="d-inline">
+                            <input type="hidden" name="product_id" value="{{ row["product_id"] }}">
+                            <button type="submit" class="btn btn-danger btn-sm"><i
+                                    class="fas fa-trash-alt"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "footer.html" %}
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <script>
+        function filterTable() {
+            var filter = document.getElementById('verificationFilter').value;
+            var rows = document.getElementById('productTable').getElementsByTagName('tbody')[0].rows;
+
+            for (var i = 0; i < rows.length; i++) {
+                var cell = rows[i].cells[10]; // index of the "Verified" column
+
+                if (filter === 'all' || (filter === 'verified' && cell.textContent.trim() === 'Verified') || (filter === 'not_verified' && cell.textContent.trim() === 'Not Verified')) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
