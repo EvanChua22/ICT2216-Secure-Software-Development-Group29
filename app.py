@@ -423,6 +423,24 @@ def view_products():
         "view_products.html", products_list=products_list, user_id=user_id
     )
 
+@app.route('/search_products', methods=['GET'])
+def search_products():
+    query = request.args.get('query')
+    if not query:
+        return redirect(url_for('view_products'))  # Redirect to products page if no query is provided
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row  # This will let us access rows as dictionaries
+    cursor = conn.cursor()
+
+    # Search for products that match the query
+    cursor.execute('''SELECT * FROM Products WHERE product_name LIKE ? OR description LIKE ?''', ('%' + query + '%', '%' + query + '%'))
+    products_list = cursor.fetchall()
+    conn.close()
+
+    return render_template('view_products.html', products_list=products_list)
+
+
 
 @app.route("/product_details/<int:product_id>")
 def product_details(product_id):
