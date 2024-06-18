@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from werkzeug.security import check_password_hash
 import sys
+import re
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Provide a secret key for session management
@@ -36,7 +37,6 @@ def index():
             return redirect(url_for("user_home"))
     return redirect(url_for("login"))
 
-
 # Home Page route
 @app.route("/user_home")
 def user_home():
@@ -54,14 +54,16 @@ def seller_home():
     else:
         return redirect(url_for('login')) """
 
+def sanitize_input(input_data):
+    return re.sub(r'[^\w\s]', '', input_data)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         # Get the user input values from the input field
-        name = request.form.get("name")
-        password = request.form.get("password")
-        role = request.form.get("role")
+        name = sanitize_input(request.form.get("name"))
+        password = sanitize_input(request.form.get("password"))
+        role = sanitize_input(request.form.get("role"))
 
         # Connect to the database
         conn = sqlite3.connect("database.db")
@@ -101,7 +103,6 @@ def login():
         return redirect(url_for("login"))
 
     return render_template("login.html")
-
 
 @app.route("/view_profile")
 def view_profile():
