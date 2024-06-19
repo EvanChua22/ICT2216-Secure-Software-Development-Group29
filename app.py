@@ -55,7 +55,16 @@ def seller_home():
         return redirect(url_for('login')) """
 
 def sanitize_input(input_data):
-    return re.sub(r'[^\w\s]', '', input_data)
+    if input_data == "text":
+        return re.sub(r'[^\w\s]', '', input_data)
+    elif input_data == "email":
+        return re.sub(r'[^\w\s@.-]', '', input_data)
+    elif input_data == "password":
+        # Passwords should be hashed and salted, but if you want to allow special characters, sanitize differently
+        return re.sub(r'[^\w\s@#$%^&*()_+=-]', '', input_data)
+    elif input_data == "phone":
+        return re.sub(r'[^\d]', '', input_data)
+    return input_data
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -147,11 +156,11 @@ def logout():
 def register():
     if request.method == "POST":
 
-        name = request.form.get("name")
-        password = request.form.get("password")
-        phone_number = request.form.get("phoneNum")
-        email = request.form.get("email")
-        role = request.form.get("role")
+        name = sanitize_input(request.form.get("name"))
+        password = sanitize_input (request.form.get("password"))
+        phone_number = sanitize_input(request.form.get("phoneNum"))
+        email = sanitize_input(request.form.get("email"))
+        role = sanitize_input (request.form.get("role"))
 
         # Connect to the database
         conn = sqlite3.connect("database.db")
@@ -207,12 +216,12 @@ def upload_product():
         else:
             flash("User not logged in. Please log in to upload a product.", "error")
             return redirect(url_for("login"))
-        product_name = request.form["product_name"]
-        description = request.form["description"]
-        price = request.form["price"]
-        size = request.form["size"]
-        condition = request.form["condition"]
-        quantity = request.form["quantity"]
+        product_name = sanitize_input(request.form["product_name"])
+        description = sanitize_input(request.form["description"])
+        price = sanitize_input(request.form["price"])
+        size = sanitize_input(request.form["size"])
+        condition = sanitize_input(request.form["condition"])
+        quantity = sanitize_input(request.form["quantity"])
 
         image = request.files["image"]
         image_url = save_image_to_database(image)
@@ -441,8 +450,6 @@ def search_products():
 
     return render_template('view_products.html', products_list=products_list)
 
-
-
 @app.route("/product_details/<int:product_id>")
 def product_details(product_id):
 
@@ -644,9 +651,9 @@ def submit_review(product_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    user_id = session["user_id"]
-    rating = request.form["rating"]
-    comment = request.form["comment"]
+    user_id = sanitize_input(session["user_id"])
+    rating = sanitize_input(request.form["rating"])
+    comment = sanitize_input(request.form["comment"])
     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     conn = sqlite3.connect("database.db")
@@ -917,9 +924,9 @@ def process_payment():
     if not user_id:
         return redirect(url_for("login"))  # Redirect to login if user is not logged in
 
-    shipping_address = request.form["shipping_address"]
-    payment_method = request.form["payment_method"]
-    total_amount = request.form["total_amount"]
+    shipping_address = sanitize_input(request.form["shipping_address"])
+    payment_method = sanitize_input(request.form["payment_method"])
+    total_amount = sanitize_input(request.form["total_amount"])
     order_date = datetime.now()
     status = "Pending"  # Initial status of the order
     tracking_num = ""  # Initially empty, will be updated when the order is shipped
