@@ -37,6 +37,7 @@ def index():
             return redirect(url_for("user_home"))
     return redirect(url_for("login"))
 
+
 # Home Page route
 @app.route("/user_home")
 def user_home():
@@ -54,17 +55,19 @@ def seller_home():
     else:
         return redirect(url_for('login')) """
 
+
 def sanitize_input(input_data):
     if input_data == "text":
-        return re.sub(r'[^\w\s]', '', input_data)
+        return re.sub(r"[^\w\s]", "", input_data)
     elif input_data == "email":
-        return re.sub(r'[^\w\s@.-]', '', input_data)
+        return re.sub(r"[^\w\s@.-]", "", input_data)
     elif input_data == "password":
         # Passwords should be hashed and salted, but if you want to allow special characters, sanitize differently
-        return re.sub(r'[^\w\s@#$%^&*()_+=-]', '', input_data)
+        return re.sub(r"[^\w\s@#$%^&*()_+=-]", "", input_data)
     elif input_data == "phone":
-        return re.sub(r'[^\d]', '', input_data)
+        return re.sub(r"[^\d]", "", input_data)
     return input_data
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -94,10 +97,8 @@ def login():
                 session["role"] = role
 
                 if role == "admin":
-
                     return redirect(url_for("enternew"))
                 elif role == "user":
-
                     return redirect(url_for("user_home"))
 
                 else:
@@ -109,9 +110,11 @@ def login():
 
         # Close the connection to the database
         conn.close()
+        create_log(event_type="Login", user_id=name, details=name + " logged in")
         return redirect(url_for("login"))
 
     return render_template("login.html")
+
 
 @app.route("/view_profile")
 def view_profile():
@@ -157,10 +160,10 @@ def register():
     if request.method == "POST":
 
         name = sanitize_input(request.form.get("name"))
-        password = sanitize_input (request.form.get("password"))
+        password = sanitize_input(request.form.get("password"))
         phone_number = sanitize_input(request.form.get("phoneNum"))
         email = sanitize_input(request.form.get("email"))
-        role = sanitize_input (request.form.get("role"))
+        role = sanitize_input(request.form.get("role"))
 
         # Connect to the database
         conn = sqlite3.connect("database.db")
@@ -350,6 +353,7 @@ def editrec():
     # Data will be available from POST submitted by the form
     if request.method == "POST":
         try:
+            current_user = session["name"]
             # Use the hidden input value of id from the form to get the user_id
             user_id = request.form["user_id"]
             name = request.form["name"]
@@ -365,7 +369,6 @@ def editrec():
                     "UPDATE Users SET name = ?, password = ?, phoneNum = ?, email = ?, role = ? WHERE user_id = ?",
                     (name, password, phoneNum, email, role, user_id),
                 )
-
                 con.commit()
                 msg = "Record successfully edited in the database"
         except Exception as e:
@@ -374,6 +377,11 @@ def editrec():
 
         finally:
             con.close()
+            create_log(
+                event_type="Update",
+                user_id=current_user,
+                details=current_user + " edited data of " + name,
+            )
             # Send the transaction message to result.html
             return render_template("result.html", msg=msg)
 
@@ -383,13 +391,14 @@ def editrec():
 def delete():
     if request.method == "POST":
         try:
+            current_user = session["user_id"]
             # Use the hidden input value of id from the form to get the user_id
             user_id = request.form["user_id"]
+            name = request.form["name"]
             # Connect to the database and DELETE a specific record based on user_id
             with sqlite3.connect("database.db") as con:
                 cur = con.cursor()
                 cur.execute("DELETE FROM Users WHERE user_id = ?", (user_id,))
-
                 con.commit()
                 msg = "Record successfully deleted from the database"
         except Exception as e:
@@ -398,6 +407,11 @@ def delete():
 
         finally:
             con.close()
+            create_log(
+                event_type="Delete",
+                user_id=current_user,
+                details=current_user + " deteled profile of " + name,
+            )
             # Send the transaction message to result.html
             return render_template("result.html", msg=msg)
 
@@ -433,22 +447,29 @@ def view_products():
         "view_products.html", products_list=products_list, user_id=user_id
     )
 
-@app.route('/search_products', methods=['GET'])
-def search_products():
-    query = request.args.get('query')
-    if not query:
-        return redirect(url_for('view_products'))  # Redirect to products page if no query is provided
 
-    conn = sqlite3.connect('database.db')
+@app.route("/search_products", methods=["GET"])
+def search_products():
+    query = request.args.get("query")
+    if not query:
+        return redirect(
+            url_for("view_products")
+        )  # Redirect to products page if no query is provided
+
+    conn = sqlite3.connect("database.db")
     conn.row_factory = sqlite3.Row  # This will let us access rows as dictionaries
     cursor = conn.cursor()
 
     # Search for products that match the query
-    cursor.execute('''SELECT * FROM Products WHERE product_name LIKE ? OR description LIKE ?''', ('%' + query + '%', '%' + query + '%'))
+    cursor.execute(
+        """SELECT * FROM Products WHERE product_name LIKE ? OR description LIKE ?""",
+        ("%" + query + "%", "%" + query + "%"),
+    )
     products_list = cursor.fetchall()
     conn.close()
 
-    return render_template('view_products.html', products_list=products_list)
+    return render_template("view_products.html", products_list=products_list)
+
 
 @app.route("/product_details/<int:product_id>")
 def product_details(product_id):
@@ -1021,6 +1042,33 @@ def view_products_admin():
     con.close()
     # Send the results of the SELECT to the list.html page
     return render_template("view_products_admin.html", rows=rows)
+
+
+def create_log(event_type, user_id=None, details=None):
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO logs (event_type, user_id, details) VALUES (?, ?, ?)",
+        (event_type, user_id, details),
+    )
+    conn.commit()
+    conn.close()
+
+
+@app.route("/logs")
+def logs():
+    # Connect to the SQLite3 datatabase and
+    # SELECT rowid and all Rows from the users table.
+    con = sqlite3.connect("database.db")
+    con.row_factory = sqlite3.Row
+
+    cur = con.cursor()
+    cur.execute("SELECT * FROM Logs")
+
+    rows = cur.fetchall()
+    con.close()
+    # Send the results of the SELECT to the list.html page
+    return render_template("logs.html", rows=rows)
 
 
 if __name__ == "__main__":

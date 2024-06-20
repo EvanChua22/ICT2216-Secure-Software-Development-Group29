@@ -1,0 +1,51 @@
+<html lang="en">
+{% include "header.html" %}
+
+<head>
+    <!--{% block title %}
+        List All Users
+        {% endblock %}
+        {% block content %} -->
+    {% include "navbar.html" %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        th {
+            font-family: monospace;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <table class="table table-hover">
+            <thead class="thead-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Timestamp</th>
+                    <th>Type</th>
+                    <th>User</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>{{ row["id"] }}</td>
+                    <td>{{ row["timestamp"] }}</td>
+                    <td>{{ row["event_type"] }}</td>
+                    <td>{{ row["user_id"] }}</td>
+                    <td>{{ row["details"] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "footer.html" %}
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+
+</html>
+{% endblock %}
