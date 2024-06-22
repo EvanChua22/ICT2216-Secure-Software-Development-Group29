@@ -3,7 +3,7 @@ from flask import Flask, flash, redirect, render_template, request, session, url
 import sqlite3
 from datetime import datetime
 from matplotlib import use
-from numpy import product
+from numpy import product # what is this for ah?
 from werkzeug.utils import secure_filename
 from functools import wraps
 from werkzeug.security import check_password_hash
