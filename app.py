@@ -145,51 +145,56 @@ def sendOTP():
         flash("User not authenticated", "error")
         return redirect(url_for("login"))
     
+
+    if "otp" not in session:
     # Generate OTP
-    otp = generate_otp()
-    
-    # Store OTP in session (or alternatively in a database)
-    session["otp"] = otp
-    session["otp_timestamp"] = datetime.now(timezone.utc)
-    
-    # Retrieve user email from the database
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT email FROM Users WHERE user_id = ?", (user_id,))
-    result = cursor.fetchone()
-    conn.close()
-    
-    if result:
-        email = result[0]
-        # Send OTP via email
-        send_email(email, "Your OTP Code", f"Your OTP code is: {otp}")
-        # might need to check spam folder 
-        flash("OTP has been sent to your email.", "success")
-        print(f"OTP has been sent to this email: {email}" )
-    else:
-        flash("Failed to retrieve user email.", "error")
-        print(f"OTP has failed to send to this email: {email}" )
+        otp = generate_otp()
+        
+        # Store OTP in session (or alternatively in a database)
+        session["otp"] = otp
+        session["otp_timestamp"] = datetime.now(timezone.utc)
+        
+        # Retrieve user email from the database
+        conn = sqlite3.connect("database.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT email FROM Users WHERE user_id = ?", (user_id,))
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            email = result[0]
+            # Send OTP via email
+            send_email(email, "Your OTP Code", f"Your OTP code is: {otp}")
+            # might need to check spam folder 
+            flash("OTP has been sent to your email.", "success")
+            print(f"OTP has been sent to this email: {email}" )
+        else:
+            flash("Failed to retrieve user email.", "error")
+            print(f"OTP has failed to send to this email: {email}" )
 
     return render_template("sendOTP.html")
 
 @app.route("/verify_otp", methods=["POST"])
 def verify_otp():
-    user_otp = request.form.get("otp")
-    session_otp = session.get("otp")
-    otp_timestamp = session.get("otp_timestamp")
+    try:
+        user_otp = request.form.get("otp")
+        session_otp = session.get("otp")
+        otp_timestamp = session.get("otp_timestamp")
 
-    if user_otp and session_otp and user_otp == session_otp:
-        # Check if OTP is expired
-        if datetime.now(timezone.utc) - otp_timestamp < timedelta(minutes=2):
-            session.pop("otp", None)
-            session.pop("otp_timestamp", None)
-            flash("Login successful!", "success")
-            return redirect(url_for("user_home"))
+        if user_otp and session_otp and user_otp == session_otp:
+            # Check if OTP is expired
+            if datetime.now(timezone.utc) - otp_timestamp < timedelta(minutes=2):
+                session.pop("otp", None)
+                session.pop("otp_timestamp", None)
+                flash("Login successful!", "success")
+                return redirect(url_for("user_home"))
+            else:
+                flash("OTP has expired. Please request a new one.", "error")
         else:
-            flash("OTP has expired. Please request a new one.", "error")
-    else:
-        flash("Invalid OTP. Please try again.", "error")
-    
+            flash("Invalid OTP. Please try again.", "error")
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}", "error")
+    return redirect(url_for("sendOTP"))
 
 
 @app.route("/view_profile")
