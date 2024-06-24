@@ -1,0 +1,61 @@
+<html lang="en">
+    {% include "header.html" %}
+    <head>
+        <title>Enter OTP</title>
+        <script>
+            function startTimer(duration, display, resendLink) {
+                var timer = duration, minutes, seconds;
+                var interval = setInterval(function () {
+                    minutes = parseInt(timer / 60, 10);
+                    seconds = parseInt(timer % 60, 10);
+    
+                    minutes = minutes < 10 ? "0" + minutes : minutes;
+                    seconds = seconds < 10 ? "0" + seconds : seconds;
+    
+                    display.textContent = minutes + ":" + seconds;
+    
+                    if (--timer < 0) {
+                        clearInterval(interval);
+                        resendLink.style.display = "inline";
+                    }
+                }, 1000);
+            }
+    
+            window.onload = function () {
+                var twoMinutes = 60 * 2,
+                    display = document.querySelector('#time'),
+                    resendLink = document.querySelector('#resend-link');
+                resendLink.style.display = "none";
+                startTimer(twoMinutes, display, resendLink);
+            };
+        </script>
+    </head>
+    <body>
+        <main class="container-fluid">
+            <div class="d-flex h-75 flex-column min-vh-100" style = "padding-top: 2%; padding-bottom: 2%;">
+                <div class="card align-self-center bg-light border-light">
+                    <div class="card-body mx-5">
+                        
+                        <h3 class="fw-bold mb-4 pt-2 text-center">One-Time Password</h3>
+                        <form method="POST" action="{{ url_for('verify_otp') }}">
+                            <div>
+                                <label for="otp">Please enter your OTP:</label>
+                                <input type="text" id="otp" name="otp" required>
+                                <a href="{{ url_for('sendOTP') }}">Resend code</a>
+                            </div>
+                            <div>
+                                <button type="submit">Verify OTP</button>
+                            </div>
+                        </form>
+                        <div>
+                            <p>OTP expires in <span id="time">02:00</span> minutes!</p>
+                            <a href="{{ url_for('sendOTP') }}" id="resend-link" style="display:none;">Resend code</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        {% include "footer.html" %}
+    </body>
+    
+</html>
