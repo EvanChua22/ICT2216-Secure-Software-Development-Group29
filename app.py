@@ -1,14 +1,17 @@
 import os
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from matplotlib import use
-from numpy import product # what is this for ah? testing webhook 2
+# from numpy import product # what is this for ah?
 from werkzeug.utils import secure_filename
 from functools import wraps
 from werkzeug.security import check_password_hash
 import sys
 import re
+import random
+import string
+import smtplib
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Provide a secret key for session management
@@ -99,7 +102,7 @@ def login():
                 if role == "admin":
                     return redirect(url_for("enternew"))
                 elif role == "user":
-                    return redirect(url_for("user_home"))
+                    return redirect(url_for("sendOTP"))
 
                 else:
                     flash("Invalid identity", "error")
@@ -115,6 +118,80 @@ def login():
 
     return render_template("login.html")
 
+def generate_otp():
+    return ''.join(random.choices(string.digits, k=6))
+
+
+def send_email(recipient_email, subject, body):
+    smtp_server = 'smtp.outlook.com'
+    smtp_port = 587
+    smtp_username = 'mobsectest123@outlook.com'
+    smtp_password = 'Mobilesecpassword111'
+
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        server.starttls()
+        server.login(smtp_username, smtp_password)
+        message = f"Subject: {subject}\n\n{body}"
+        server.sendmail(smtp_username, recipient_email, message)
+
+
+@app.route("/sendOTP")
+def sendOTP():
+    user_id = session.get("user_id")
+    name = session.get("name")
+
+    if not user_id or not name:
+        flash("User not authenticated", "error")
+        return redirect(url_for("login"))
+    if "otp" not in session:
+    # Generate OTP
+        otp = generate_otp()
+
+        # Store OTP in session (or alternatively in a database)
+        session["otp"] = otp
+        session["otp_timestamp"] = datetime.now(timezone.utc)
+
+        # Retrieve user email from the database
+        conn = sqlite3.connect("database.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT email FROM Users WHERE user_id = ?", (user_id,))
+        result = cursor.fetchone()
+        conn.close()
+
+        if result:
+            email = result[0]
+            # Send OTP via email
+            send_email(email, "Your OTP Code", f"Your OTP code is: {otp}")
+            # might need to check spam folder 
+            flash("OTP has been sent to your email.", "success")
+            print(f"OTP has been sent to this email: {email}" )
+        else:
+            flash("Failed to retrieve user email.", "error")
+            print(f"OTP has failed to send to this email: {email}" )
+
+    return render_template("sendOTP.html")
+
+@app.route("/verify_otp", methods=["POST"])
+def verify_otp():
+    try: 
+        user_otp = request.form.get("otp")
+        session_otp = session.get("otp")
+        otp_timestamp = session.get("otp_timestamp")
+
+        if user_otp and session_otp and user_otp == session_otp:
+            # Check if OTP is expired
+            if datetime.now(timezone.utc) - otp_timestamp < timedelta(minutes=2):
+                session.pop("otp", None)
+                session.pop("otp_timestamp", None)
+                flash("Login successful!", "success")
+                return redirect(url_for("user_home"))
+            else:
+                flash("OTP has expired. Please request a new one.", "error")
+        else:
+            flash("Invalid OTP. Please try again.", "error")
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}", "error")
+    return redirect(url_for("sendOTP"))
 
 @app.route("/view_profile")
 def view_profile():
@@ -145,6 +222,11 @@ def view_profile():
     else:
         flash("User not found", "danger")
         return redirect(url_for("login"))
+
+# will work on this 
+@app.route("/forgotPass", methods=["GET", "POST"])
+def forgotPass():
+    return render_template("forgotPass.html")
 
 
 @app.route("/logout")
