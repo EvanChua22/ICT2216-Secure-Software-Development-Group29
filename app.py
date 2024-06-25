@@ -94,6 +94,8 @@ def login():
             role = result[5]
 
             if stored_password == password:
+                # make sure to clear the session first to prevent same session being used
+                session.clear()
                 session["logged_in"] = True
                 session["user_id"] = user_id
                 session["name"] = name
