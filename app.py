@@ -22,6 +22,25 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 serializer = URLSafeTimedSerializer(app.secret_key)
 
+#Secure Session Cookies
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    
+    #set this to true when site is using HTTPS
+    #Ensures that the session cookie is only sent over HTTPS
+    SESSION_COOKIE_SECURE=False,  
+    SESSION_COOKIE_SAMESITE='Lax',
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour
+)
+
+#This implements Session Timeout and is set to 1 hour
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+    app.permanent_session_lifetime = timedelta(hours=1)
+    session.modified = True
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
