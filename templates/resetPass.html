@@ -1,0 +1,34 @@
+<html lang="en">
+    {% include "header.html" %}
+    <body>
+        {% include "navbar.html" %}
+        <main class="container-fluid">
+            <div class="d-flex h-75 flex-column min-vh-100" style = "padding-top: 2%; padding-bottom: 2%;">
+                <div class="card align-self-center bg-light border-light">
+                    <div class="card-body mx-5">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }}" role="alert">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        <h3 class="fw-bold mb-4 pt-2 text-center">Reset Password</h3>
+                        <form method="POST">
+                            <label for="password">New Password:</label>
+                                <input type="password" id="password" name="password" required>
+                                
+                            <label for="confirm_password">Confirm New Password:</label>
+                                <input type="password" id="confirm_password" name="confirm_password" required>
+                            <button type="submit" class="btn btn-dark btn-block mb-4"> Reset Password </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+        {% include "footer.html" %}
+    </body>
+    
+</html>

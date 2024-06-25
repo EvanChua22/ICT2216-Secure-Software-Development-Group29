@@ -12,13 +12,15 @@ import re
 import random
 import string
 import smtplib
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
+from werkzeug.security import generate_password_hash
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Provide a secret key for session management
 UPLOAD_FOLDER = "static/productImg"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
-
+serializer = URLSafeTimedSerializer(app.secret_key)
 
 def login_required(f):
     @wraps(f)
@@ -93,7 +95,8 @@ def login():
             stored_password = result[2]
             role = result[5]
 
-            if stored_password == password:
+            # check that plaintext password matches the hashed password 
+            if check_password_hash(stored_password, password):
                 # make sure to clear the session first to prevent same session being used
                 session.clear()
                 session["logged_in"] = True
@@ -121,6 +124,8 @@ def login():
 
     return render_template("login.html")
 
+
+# Multi-Factor Authentication Ln 125 - 201
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
 
@@ -226,10 +231,79 @@ def view_profile():
         flash("User not found", "danger")
         return redirect(url_for("login"))
 
-# will work on this 
+
+# Forgot Password Service Ln 
 @app.route("/forgotPass", methods=["GET", "POST"])
 def forgotPass():
+    if request.method == 'POST':
+        email = request.form['email']
+        
+        # Execute raw SQL query using sqlite3
+        conn = sqlite3.connect("database.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Users WHERE email = ?", (email,))
+        user_row = cursor.fetchone()
+        conn.close()
+        
+        if user_row:
+            # Assuming user_row has (id, email, password) structure
+            user = {
+                'user_id': user_row[0],
+                'email': user_row[4],
+                'password': user_row[2]
+            }
+            # Generate a token and send email
+            token = serializer.dumps(email, salt='password-reset-salt')
+            reset_url = url_for('resetPass', token=token, _external=True)
+            subject = 'Password Reset Request'
+            body = f'''To reset your password, visit the following link:
+                        {reset_url}
+                        If you did not make this request, simply ignore this email and no changes will be made.
+                        '''
+            send_email(user['email'], subject, body)
+            flash('A password reset link has been sent to your email.', 'info')
+            print('A password reset link has been sent to your email.')
+        else:
+            flash('No account with that email address exists.', 'warning')
+            print('No account with that email address exists.')
+        return redirect(url_for('forgotPass'))
+    
     return render_template("forgotPass.html")
+
+@app.route('/resetPass/<token>', methods=['GET', 'POST'])
+def resetPass(token):
+    try:
+        email = serializer.loads(token, salt='password-reset-salt', max_age=3600)  # Token is valid for 1 hour
+    except (SignatureExpired, BadTimeSignature):
+        flash('The reset link is invalid or has expired.', 'danger')
+        return redirect(url_for('forgotPass'))
+
+    if request.method == 'POST':
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+
+        if password != confirm_password:
+            flash('Passwords do not match. Please try again.', 'warning')
+            return render_template('resetPass.html', token=token)
+
+        conn = sqlite3.connect("database.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Users WHERE email = ?", (email,))
+        user_row = cursor.fetchone()
+
+        if user_row:
+            hashed_password = generate_password_hash(password)
+            cursor.execute("UPDATE Users SET password = ? WHERE email = ?", (hashed_password, email))
+            conn.commit()
+            flash('Your password has been updated!', 'success')
+            print("Your password has been updated. ")
+        else:
+            flash('An error occurred. Please try again.', 'danger')
+        conn.close()
+
+        return redirect(url_for('login'))
+
+    return render_template('resetPass.html', token=token)
 
 
 @app.route("/logout")
@@ -246,6 +320,7 @@ def register():
 
         name = sanitize_input(request.form.get("name"))
         password = sanitize_input(request.form.get("password"))
+        hashed_password = generate_password_hash(password)
         phone_number = sanitize_input(request.form.get("phoneNum"))
         email = sanitize_input(request.form.get("email"))
         role = sanitize_input(request.form.get("role"))
@@ -258,7 +333,7 @@ def register():
                 """ INSERT INTO Users (name, password, phoneNum, email, role, created_at) VALUES  (?, ?, ?, ?, ?, datetime('now'))""",
                 (
                     name,
-                    password,
+                    hashed_password,
                     phone_number,
                     email,
                     role,
