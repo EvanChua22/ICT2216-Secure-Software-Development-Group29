@@ -102,6 +102,7 @@ def login():
                 if role == "admin":
                     return redirect(url_for("enternew"))
                 elif role == "user":
+                    # when doing testing and need to keep logging in, can jus comment this and redirect to 'user_home' instead
                     return redirect(url_for("sendOTP"))
 
                 else:
