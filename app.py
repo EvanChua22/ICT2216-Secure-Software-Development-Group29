@@ -14,6 +14,8 @@ import string
 import smtplib
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
 from werkzeug.security import generate_password_hash
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Provide a secret key for session management
@@ -21,6 +23,8 @@ UPLOAD_FOLDER = "static/productImg"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 serializer = URLSafeTimedSerializer(app.secret_key)
+# Initialize the Argon2id password hasher
+ph = PasswordHasher()
 
 #Secure Session Cookies
 app.config.update(
@@ -125,9 +129,12 @@ def login():
             stored_password = result[2]
             role = result[5]
 
-            # check that plaintext password matches the hashed password 
-            if check_password_hash(stored_password, password):
-                # make sure to clear the session first to prevent same session being used
+            try:
+                # Verify the password using Argon2id
+                ph.verify(stored_password, password)
+
+                # Password verification succeeded
+                # Clear the session first to prevent the same session being used
                 session.clear()
                 session["logged_in"] = True
                 session["user_id"] = user_id
@@ -138,13 +145,13 @@ def login():
                 if role == "admin":
                     return redirect(url_for("enternew"))
                 elif role == "user":
-                    # when doing testing and need to keep logging in, can jus comment this and redirect to 'user_home' instead
-                    # return redirect(url_for("sendOTP"))
+                    # When doing testing and need to keep logging in, can just comment this and redirect to 'user_home' instead
                     return redirect(url_for("user_home"))
 
                 else:
                     flash("Invalid identity", "error")
-            else:
+            except VerifyMismatchError:
+                # Password verification failed
                 flash("Invalid username or password", "error")
         else:
             flash("Invalid username or password", "error")
@@ -286,11 +293,11 @@ def changePass():
     cursor = conn.cursor()
     user = cursor.execute('SELECT * FROM Users WHERE user_id = ?', (user_id,)).fetchone()
 
-    if not user or not check_password_hash(user[2], current_password):
+    if not user or not ph.verify(user[2], current_password):
         flash('Current password is incorrect.', 'error')
         return redirect(url_for('view_profile', error="password_incorrect"))
 
-    new_password_hash = generate_password_hash(new_password)
+    new_password_hash = ph.hash(new_password)
     conn.execute('UPDATE Users SET password = ? WHERE user_id = ?', (new_password_hash, user_id))
     conn.commit()
     conn.close()
@@ -387,11 +394,14 @@ def register():
 
         name = sanitize_input(request.form.get("name"))
         password = sanitize_input(request.form.get("password"))
-        hashed_password = generate_password_hash(password)
+        # hashed_password = generate_password_hash(password)
         phone_number = sanitize_input(request.form.get("phoneNum"))
         email = sanitize_input(request.form.get("email"))
         role = sanitize_input(request.form.get("role"))
 
+        hashed_password = ph.hash(password)
+        print(f"hashed_password: {hashed_password}")
+        
         # Connect to the database
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()

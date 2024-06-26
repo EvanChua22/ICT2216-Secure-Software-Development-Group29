@@ -6,7 +6,15 @@
             <div class="d-flex h-75 flex-column min-vh-100" style = "padding-top: 2%; padding-bottom: 2%;">
                 <div class="card align-self-center bg-light border-light">
                     <div class="card-body mx-5">
-                        
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }}" role="alert">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
                         <h3 class="fw-bold mb-4 pt-2 text-center">Forgot Password?</h3>
                         <form method="POST">
                             <p class="text-center">

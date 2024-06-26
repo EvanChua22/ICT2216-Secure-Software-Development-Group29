@@ -5,6 +5,15 @@
         <main class="container-fluid">
             <div class="d-flex h-75 flex-column min-vh-100" style = "padding-top: 2%; padding-bottom: 2%;">
                 <div class="card align-self-left bg-light border-light">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }}" role="alert">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                    {% endwith %}
                     <h1>User Profile</h1>
                     <p><strong>Username:</strong> {{ user.name }}</p>
                     <p><strong>Phone Number:</strong> {{ user.phoneNum }}</p>
@@ -54,18 +63,59 @@
         </div>
         <script>
             function validatePasswords() {
+                var currentPassword = document.getElementById('currentPassword');
                 var newPassword = document.getElementById('newPassword');
                 var confirmNewPassword = document.getElementById('confirmNewPassword');
+                var valid = true;
 
-                if (newPassword.value !== confirmNewPassword.value) {
+                // Validate current password
+                if (currentPassword.value === '') {
+                    currentPassword.setCustomValidity('Current password is required');
+                    valid = false;
+                } else {
+                    currentPassword.setCustomValidity('');
+                }
+
+                // Validate new password
+                if (newPassword.value === '') {
+                    newPassword.setCustomValidity('New password is required');
+                    valid = false;
+                } else {
+                    newPassword.setCustomValidity('');
+                }
+
+                // Validate confirm new password
+                if (confirmNewPassword.value === '') {
+                    confirmNewPassword.setCustomValidity('Confirm new password is required');
+                    valid = false;
+                } else if (newPassword.value !== confirmNewPassword.value) {
                     confirmNewPassword.setCustomValidity('Passwords do not match');
-                    return false;
+                    valid = false;
                 } else {
                     confirmNewPassword.setCustomValidity('');
-                    return true;
                 }
+
+                if (!valid) {
+                    confirmNewPassword.reportValidity();
+                    newPassword.reportValidity();
+                    currentPassword.reportValidity();
+                }
+
+                return valid;
             }
-            
+
+            document.getElementById('newPassword').addEventListener('input', function() {
+                document.getElementById('confirmNewPassword').setCustomValidity('');
+            });
+
+            document.getElementById('confirmNewPassword').addEventListener('input', function() {
+                this.setCustomValidity('');
+            });
+
+            document.getElementById('currentPassword').addEventListener('input', function() {
+                this.setCustomValidity('');
+            });
+
             window.onload = function() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const error = urlParams.get('error');
@@ -81,6 +131,14 @@
                     }
                 }
             }
+
+            $('#changePasswordModal').on('hidden.bs.modal', function () {
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmNewPassword').value = '';
+                document.getElementById('confirmNewPassword').setCustomValidity('');
+                document.getElementById('currentPassword').setCustomValidity('');
+            });
         </script>
         {% include "footer.html" %}
     </body>
