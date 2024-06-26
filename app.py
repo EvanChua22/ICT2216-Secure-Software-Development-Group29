@@ -51,6 +51,16 @@ def login_required(f):
     return decorated_function
 
 
+# def otp_required(f):
+#     @wraps(f)
+#     def decorated_function(*args, **kwargs):
+#         if not session.get("logged_in") or not session.get("otp_verified"):
+#             session.clear()  # Clear the session if trying to access without OTP verification
+#             flash("Please log in again.", "error")
+#             return redirect(url_for("login"))
+#         return f(*args, **kwargs)
+#     return decorated_function
+
 @app.route("/")
 def index():
     if "name" in session:
@@ -64,6 +74,7 @@ def index():
 
 # Home Page route
 @app.route("/user_home")
+#@otp_required
 def user_home():
     if "name" and "user_id" in session and session.get("role") == "user":
         user_id = session["user_id"]
@@ -122,12 +133,14 @@ def login():
                 session["user_id"] = user_id
                 session["name"] = name
                 session["role"] = role
+                session["otp_verified"] = False
 
                 if role == "admin":
                     return redirect(url_for("enternew"))
                 elif role == "user":
                     # when doing testing and need to keep logging in, can jus comment this and redirect to 'user_home' instead
-                    return redirect(url_for("sendOTP"))
+                    # return redirect(url_for("sendOTP"))
+                    return redirect(url_for("user_home"))
 
                 else:
                     flash("Invalid identity", "error")
@@ -144,7 +157,7 @@ def login():
     return render_template("login.html")
 
 
-# Multi-Factor Authentication Ln 125 - 201
+# Multi-Factor Authentication Ln 161 - 238
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
 
@@ -164,6 +177,9 @@ def send_email(recipient_email, subject, body):
 
 @app.route("/sendOTP")
 def sendOTP():
+    if not session.get("logged_in") or session.get("otp_verified"):
+        return redirect(url_for("login"))
+    
     user_id = session.get("user_id")
     name = session.get("name")
 
@@ -210,6 +226,7 @@ def verify_otp():
             if datetime.now(timezone.utc) - otp_timestamp < timedelta(minutes=2):
                 session.pop("otp", None)
                 session.pop("otp_timestamp", None)
+                session["otp_verified"] = True  # Mark OTP as verified
                 flash("Login successful!", "success")
                 return redirect(url_for("user_home"))
             else:
@@ -250,8 +267,39 @@ def view_profile():
         flash("User not found", "danger")
         return redirect(url_for("login"))
 
+# Change Password Ln 271 - 299 
+@app.route('/changePass', methods=['POST'])
+def changePass():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
 
-# Forgot Password Service Ln 
+    user_id = session['user_id']
+    current_password = request.form['current_password']
+    new_password = request.form['new_password']
+    confirm_new_password = request.form['confirm_new_password']
+
+    if new_password != confirm_new_password:
+        flash('New passwords do not match.', 'error')
+        return redirect(url_for('view_profile', error="password_mismatch"))
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    user = cursor.execute('SELECT * FROM Users WHERE user_id = ?', (user_id,)).fetchone()
+
+    if not user or not check_password_hash(user[2], current_password):
+        flash('Current password is incorrect.', 'error')
+        return redirect(url_for('view_profile', error="password_incorrect"))
+
+    new_password_hash = generate_password_hash(new_password)
+    conn.execute('UPDATE Users SET password = ? WHERE user_id = ?', (new_password_hash, user_id))
+    conn.commit()
+    conn.close()
+
+    flash('Password successfully changed.', 'success')
+    return redirect(url_for('view_profile'))
+
+
+# Forgot Password Service Ln 303 - 373
 @app.route("/forgotPass", methods=["GET", "POST"])
 def forgotPass():
     if request.method == 'POST':
@@ -389,6 +437,7 @@ def save_image_to_database(image):
 
 
 @app.route("/upload_product", methods=["GET", "POST"])
+#@otp_required
 def upload_product():
 
     if request.method == "POST":
@@ -597,6 +646,7 @@ def delete():
 
 # Route View all products
 @app.route("/view_products")
+#@otp_required
 def view_products():
 
     if "user_id" in session:
@@ -723,6 +773,7 @@ def products_reviews(product_id):
 
 
 @app.route("/my_products")
+#@otp_required
 def my_products():
 
     if "user_id" in session:

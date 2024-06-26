@@ -9,10 +9,79 @@
                     <p><strong>Username:</strong> {{ user.name }}</p>
                     <p><strong>Phone Number:</strong> {{ user.phoneNum }}</p>
                     <p><strong>Email:</strong> {{ user.email }}</p>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#changePasswordModal">
+                        Change Password
+                    </button>
                     </div>
                 </div>
             </div>
         </main>
+        <!-- Change Password Modal -->
+        <div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form method="POST" action="{{ url_for('changePass') }}" onsubmit="return validatePasswords()">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" class="form-control" id="currentPassword" name="current_password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" class="form-control" id="newPassword" name="new_password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmNewPassword">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirmNewPassword" name="confirm_new_password" required>
+                                <div class="invalid-feedback">
+                                    Passwords do not match.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Change Password</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script>
+            function validatePasswords() {
+                var newPassword = document.getElementById('newPassword');
+                var confirmNewPassword = document.getElementById('confirmNewPassword');
+
+                if (newPassword.value !== confirmNewPassword.value) {
+                    confirmNewPassword.setCustomValidity('Passwords do not match');
+                    return false;
+                } else {
+                    confirmNewPassword.setCustomValidity('');
+                    return true;
+                }
+            }
+            
+            window.onload = function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const error = urlParams.get('error');
+                
+                if (error) {
+                    $('#changePasswordModal').modal('show');
+                    if (error === "password_mismatch") {
+                        document.getElementById('confirmNewPassword').setCustomValidity('Passwords do not match');
+                        document.getElementById('confirmNewPassword').reportValidity();
+                    } else if (error === "password_incorrect") {
+                        document.getElementById('currentPassword').setCustomValidity('Current password is incorrect');
+                        document.getElementById('currentPassword').reportValidity();
+                    }
+                }
+            }
+        </script>
         {% include "footer.html" %}
     </body>
     
