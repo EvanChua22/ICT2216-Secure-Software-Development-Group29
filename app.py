@@ -25,6 +25,7 @@ ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 serializer = URLSafeTimedSerializer(app.secret_key)
 # Initialize the Argon2id password hasher
 ph = PasswordHasher()
+this is a wrong syntax to see if jenkins detects failed builds. 
 
 #Secure Session Cookies
 app.config.update(
