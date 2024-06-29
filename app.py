@@ -96,18 +96,17 @@ def seller_home():
         return redirect(url_for('login')) """
 
 
-def sanitize_input(input_data):
-    if input_data == "text":
+def sanitize_input(input_data, input_type="text"):
+    if input_type == "text":
         return re.sub(r"[^\w\s]", "", input_data)
-    elif input_data == "email":
+    elif input_type == "email":
         return re.sub(r"[^\w\s@.-]", "", input_data)
-    elif input_data == "password":
+    elif input_type == "password":
         # Passwords should be hashed and salted, but if you want to allow special characters, sanitize differently
         return re.sub(r"[^\w\s@#$%^&*()_+=-]", "", input_data)
-    elif input_data == "phone":
+    elif input_type == "phone":
         return re.sub(r"[^\d]", "", input_data)
     return input_data
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -690,7 +689,7 @@ def view_products():
 
 @app.route("/search_products", methods=["GET"])
 def search_products():
-    query = request.args.get("query")
+    query = sanitize_input(request.args.get("query"))
     if not query:
         return redirect(
             url_for("view_products")
