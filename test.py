@@ -1,75 +1,65 @@
-import os
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+import pytest
+from app import app, sanitize_input
 import sqlite3
-from datetime import datetime, timedelta, timezone
-from matplotlib import use
-# from numpy import product # what is this for ah?
-from werkzeug.utils import secure_filename
-from functools import wraps
-from werkzeug.security import check_password_hash
-import sys
-import re
-import random
-import string
-import smtplib
-from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
-from werkzeug.security import generate_password_hash
 
-app = Flask(__name__)
+@pytest.fixture
+def client():
+    app.config['TESTING'] = True
+    app.config['WTF_CSRF_ENABLED'] = False
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
 
-def sanitize_input(input_data, input_type="text"):
-    if input_type == "text":
-        return re.sub(r"[^\w\s]", "", input_data)
-    elif input_type == "email":
-        return re.sub(r"[^\w\s@.-]", "", input_data)
-    elif input_type == "password":
-        # Passwords should be hashed and salted, but if you want to allow special characters, sanitize differently
-        return re.sub(r"[^\w\s@#$%^&*()_+=-]", "", input_data)
-    elif input_type == "phone":
-        return re.sub(r"[^\d]", "", input_data)
-    return input_data
+    with app.test_client() as client:
+        with app.app_context():
+            init_db()
+        yield client
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
+def init_db():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE Users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        password TEXT NOT NULL,
+        phoneNum TEXT NOT NULL,
+        email TEXT NOT NULL,
+        role TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+    )''')
+    conn.commit()
+    conn.close()
 
-        name = sanitize_input(request.form.get("name"))
-        password = sanitize_input(request.form.get("password"))
-        # hashed_password = generate_password_hash(password)
-        phone_number = sanitize_input(request.form.get("phoneNum"))
-        email = sanitize_input(request.form.get("email"))
-        role = sanitize_input(request.form.get("role"))
+def test_sanitize_input():
+    assert sanitize_input("Hello <script>") == "Hello script"
+    assert sanitize_input("john.doe@example.com", "email") == "john.doe@example.com"
+    assert sanitize_input("123-456-7890", "phone") == "1234567890"
+    assert sanitize_input("Password@123", "password") == "Password@123"
 
-        hashed_password = ph.hash(password)
-        print(f"hashed_password: {hashed_password}")
-        
-        # Connect to the database
-        conn = sqlite3.connect("database.db")
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
-                """ INSERT INTO Users (name, password, phoneNum, email, role, created_at) VALUES  (?, ?, ?, ?, ?, datetime('now'))""",
-                (
-                    name,
-                    hashed_password,
-                    phone_number,
-                    email,
-                    role,
-                ),
-            )
-            conn.commit()
-            conn.close()
-            flash("Your account has been successfully created!", "Success")
-            return redirect(url_for("login"))
+def test_register(client):
+    rv = client.post('/register', data={
+        'name': 'testuser',
+        'password': 'password123',
+        'phoneNum': '1234567890',
+        'email': 'test@example.com',
+        'role': 'user'
+    }, follow_redirects=True)
+    assert b'Your account has been successfully created!' in rv.data
 
-        except Exception as e:
-            # Handle database errors and display an error message
-            conn.rollback()
-            flash(
-                "An error has occured during registration. Please try again later.",
-                "error",
-            )
-            print("Error", e)
-        return redirect(url_for("register"))
-    else:
-        return render_template("register.html")
+def test_register_duplicate(client):
+    # Register a user
+    client.post('/register', data={
+        'name': 'testuser',
+        'password': 'password123',
+        'phoneNum': '1234567890',
+        'email': 'test@example.com',
+        'role': 'user'
+    }, follow_redirects=True)
+
+    # Try to register the same user again
+    rv = client.post('/register', data={
+        'name': 'testuser',
+        'password': 'password123',
+        'phoneNum': '1234567890',
+        'email': 'test@example.com',
+        'role': 'user'
+    }, follow_redirects=True)
+    assert b'An error has occured during registration. Please try again later.' in rv.data
