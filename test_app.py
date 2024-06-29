@@ -21,12 +21,12 @@ def client():
 def init_db():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE Users (
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         password TEXT NOT NULL,
         phoneNum TEXT NOT NULL,
-        email TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
         role TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     )''')
@@ -51,20 +51,23 @@ def test_register(client):
 
 def test_register_duplicate(client):
     # Register a user
-    client.post('/register', data={
+    response1 = client.post('/register', data={
         'name': 'testuser',
         'password': 'password123',
         'phoneNum': '1234567890',
         'email': 'test@example.com',
         'role': 'user'
     }, follow_redirects=True)
+    print(response1.data)
+    assert b'Your account has been successfully created!' in response1.data
 
     # Try to register the same user again
-    rv = client.post('/register', data={
+    response2 = client.post('/register', data={
         'name': 'testuser',
         'password': 'password123',
         'phoneNum': '1234567890',
         'email': 'test@example.com',
         'role': 'user'
     }, follow_redirects=True)
-    assert b'An error has occured during registration. Please try again later.' in rv.data
+    print(response2.data)
+    assert b'An account with this email already exists. Please try a different email.' in response2.data

@@ -394,41 +394,38 @@ def register():
 
         name = sanitize_input(request.form.get("name"))
         password = sanitize_input(request.form.get("password"))
-        # hashed_password = generate_password_hash(password)
         phone_number = sanitize_input(request.form.get("phoneNum"))
         email = sanitize_input(request.form.get("email"))
         role = sanitize_input(request.form.get("role"))
 
         hashed_password = ph.hash(password)
         print(f"hashed_password: {hashed_password}")
-        
-        # Connect to the database
+
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
         try:
             cursor.execute(
-                """ INSERT INTO Users (name, password, phoneNum, email, role, created_at) VALUES  (?, ?, ?, ?, ?, datetime('now'))""",
-                (
-                    name,
-                    hashed_password,
-                    phone_number,
-                    email,
-                    role,
-                ),
+                """INSERT INTO Users (name, password, phoneNum, email, role, created_at) 
+                   VALUES (?, ?, ?, ?, ?, datetime('now'))""",
+                (name, hashed_password, phone_number, email, role)
             )
             conn.commit()
-            conn.close()
-            flash("Your account has been successfully created!", "Success")
+            flash("Your account has been successfully created!", "success")
             return redirect(url_for("login"))
 
-        except Exception as e:
-            # Handle database errors and display an error message
+        except sqlite3.IntegrityError:
             conn.rollback()
-            flash(
-                "An error has occured during registration. Please try again later.",
-                "error",
-            )
-            print("Error", e)
+            flash("An account with this email already exists. Please try a different email.", "error")
+            print("IntegrityError: An account with this email already exists.")
+        
+        except Exception as e:
+            conn.rollback()
+            flash("An error has occurred during registration. Please try again later.", "error")
+            print("Error:", e)
+        
+        finally:
+            conn.close()
+
         return redirect(url_for("register"))
     else:
         return render_template("register.html")
