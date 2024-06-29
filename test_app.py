@@ -1,12 +1,17 @@
+import os
+import sqlite3
 import pytest
 from app import app, sanitize_input
-import sqlite3
 
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
     app.config['WTF_CSRF_ENABLED'] = False
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+
+    # Remove the existing database file if it exists
+    if os.path.exists('database.db'):
+        os.remove('database.db')
 
     with app.test_client() as client:
         with app.app_context():
