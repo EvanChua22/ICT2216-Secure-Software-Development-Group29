@@ -912,7 +912,7 @@ def submit_review(product_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    user_id = sanitize_input(session["user_id"])
+    user_id = sanitize_input(str(session["user_id"]))
     rating = sanitize_input(request.form["rating"])
     comment = sanitize_input(request.form["comment"])
     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
