@@ -30,7 +30,7 @@ DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, 'dat
 ph = PasswordHasher()
 
 
-#Secure Session Cookies
+# Secure Session Cookies
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     
@@ -41,7 +41,7 @@ app.config.update(
     PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour
 )
 
-#This implements Session Timeout and is set to 1 hour
+# This implements Session Timeout and is set to 1 hour
 @app.before_request
 def make_session_permanent():
     session.permanent = True
@@ -74,7 +74,7 @@ def index():
     if "name" in session:
         role = session.get("role")
         if role == "admin":
-            return redirect(url_for("enternew"))
+            return redirect(url_for("list"))
         elif role == "user":
             return redirect(url_for("user_home"))
     return redirect(url_for("login"))
@@ -82,7 +82,7 @@ def index():
 
 # Home Page route
 @app.route("/user_home")
-#@otp_required
+# @otp_required
 def user_home():
     if "name" and "user_id" in session and session.get("role") == "user":
         user_id = session["user_id"]
@@ -146,7 +146,7 @@ def login():
                 session["otp_verified"] = False
 
                 if role == "admin":
-                    return redirect(url_for("enternew"))
+                    return redirect(url_for("list"))
                 elif role == "user":
                     # When doing testing and need to keep logging in, can just comment this and redirect to 'user_home' instead
                     return redirect(url_for("user_home"))
@@ -277,7 +277,7 @@ def view_profile():
         flash("User not found", "danger")
         return redirect(url_for("login"))
 
-# Change Password Ln 271 - 299 
+# Change Password Ln 271 - 299
 @app.route('/changePass', methods=['POST'])
 def changePass():
     if 'user_id' not in session:
@@ -447,7 +447,7 @@ def save_image_to_database(image):
 
 
 @app.route("/upload_product", methods=["GET", "POST"])
-#@otp_required
+# @otp_required
 def upload_product():
 
     if request.method == "POST":
@@ -504,12 +504,12 @@ def upload_product():
 
 
 # Route to form used to add a new user to the database
-@app.route("/enternew")
-def enternew():
-    if "name" in session and session.get("role") == "admin":
-        return render_template("user.html", name=session["name"])
-    else:
-        return redirect(url_for("login"))
+# @app.route("/enternew")
+# def enternew():
+#     if "name" in session and session.get("role") == "admin":
+#         return render_template("user.html", name=session["name"])
+#     else:
+#         return redirect(url_for("login"))
 
 
 # Route to add a new record (INSERT) user data to the database
@@ -648,7 +648,7 @@ def delete():
             create_log(
                 event_type="Delete",
                 user_id=current_user,
-                details=current_user + " deteled profile of " + name,
+                details=session["name"] + " deteled profile of " + name,
             )
             # Send the transaction message to result.html
             return render_template("result.html", msg=msg)
@@ -656,7 +656,7 @@ def delete():
 
 # Route View all products
 @app.route("/view_products")
-#@otp_required
+# @otp_required
 def view_products():
 
     if "user_id" in session:
@@ -783,7 +783,7 @@ def products_reviews(product_id):
 
 
 @app.route("/my_products")
-#@otp_required
+# @otp_required
 def my_products():
 
     if "user_id" in session:

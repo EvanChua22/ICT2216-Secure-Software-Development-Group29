@@ -11,9 +11,6 @@
             <ul class="navbar-nav mr-auto">
                 {% if session['role'] == 'admin' %}
                 <li class="nav-item">
-                    <a href="{{ url_for('enternew') }}" class="nav-link">Add User</a>
-                </li>
-                <li class="nav-item">
                     <a href="{{ url_for('list') }}" class="nav-link">Review and Edit User</a>
                 </li>
                 <li class="nav-item">
