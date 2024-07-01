@@ -37,6 +37,15 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     )''')
     
+    # Create Products table if not exists
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Products (
+        product_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        price REAL NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+    )''')
+    
     # Create Shopping_Cart table if not exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS Shopping_Cart (
         cart_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,7 +59,8 @@ def init_db():
         cart_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
         quantity INTEGER NOT NULL,
-        FOREIGN KEY (cart_id) REFERENCES Shopping_Cart (cart_id)
+        FOREIGN KEY (cart_id) REFERENCES Shopping_Cart (cart_id),
+        FOREIGN KEY (product_id) REFERENCES Products (product_id)
     )''')
     
     # Create Reviews table if not exists
@@ -68,6 +78,12 @@ def init_db():
     # Insert an example user for testing with plain password (you can hash it if needed)
     cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
                       VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
+    
+    # Insert example products
+    cursor.execute('''INSERT INTO Products (name, price, description)
+                      VALUES (?, ?, ?)''', ('Product A', 10.99, 'Example product A description'))
+    cursor.execute('''INSERT INTO Products (name, price, description)
+                      VALUES (?, ?, ?)''', ('Product B', 19.99, 'Example product B description'))
     
     conn.commit()
     conn.close()
@@ -113,4 +129,4 @@ def test_update_cart(client):
         'cart_item_id': 1,
         'quantity': 5
     }, follow_redirects=True)
-    assert b'Cart updated!' in rv.data  
+    assert b'Cart updated!' in rv.data
