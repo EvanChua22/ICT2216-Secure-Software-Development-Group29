@@ -491,7 +491,7 @@ def upload_product():
             conn.commit()
             conn.close()
             flash("Your product has been successfully uploaded!", "Success")
-            return redirect(url_for("upload_product"))
+            return redirect(url_for("my_products"))
 
         except Exception as e:
             # Handle database errors and display an error message
