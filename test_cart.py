@@ -89,7 +89,7 @@ def init_db():
     # Insert example products
     cursor.execute('''INSERT INTO Products (product_name, price, description)
                       VALUES (?, ?, ?)''', ('Product A', 10.99, 'Example product A description'))
-    cursor.execute('''INSERT INTO Products (name, price, description)
+    cursor.execute('''INSERT INTO Products (product_name, price, description)
                       VALUES (?, ?, ?)''', ('Product B', 19.99, 'Example product B description'))
     
     conn.commit()
