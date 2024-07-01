@@ -1272,6 +1272,7 @@ def process_payment():
         )
 
         conn.commit()
+        flash("Payment successful!", "success")
         return render_template("success.html")
 
     except Exception as e:

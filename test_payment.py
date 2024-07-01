@@ -31,12 +31,18 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     )''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS Products (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        product_name TEXT NOT NULL,
-        description TEXT,
-        price REAL NOT NULL,
-        stock INTEGER NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+            product_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            product_name VARCHAR(45),
+            description VARCHAR(45),
+            price DECIMAL(10,2),
+            size VARCHAR(10),
+            condition VARCHAR(20),
+            image_url VARCHAR(255),
+            quantity INTEGER,
+            created_at DATETIME,
+            verified BOOLEAN,
+            FOREIGN KEY(user_id) REFERENCES Users(user_id)
     )''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS Shopping_Cart (
         cart_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,18 +57,24 @@ def init_db():
         FOREIGN KEY (cart_id) REFERENCES Shopping_Cart (cart_id)
     )''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS Orders (
-        order_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        total_amount REAL NOT NULL,
-        order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES Users (id)
+        order_id INTEGER PRIMARY KEY,
+        user_id INTEGER,
+        order_date DATETIME,
+        total_amount DECIMAL(10,2),
+        status VARCHAR(20),
+        tracking_num VARCHAR(50),
+        shipping_address VARCHAR(255),
+        created_at DATETIME,
+        FOREIGN KEY(user_id) REFERENCES Users(user_id)
     )''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS Order_Items (
-        order_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        order_id INTEGER NOT NULL,
-        product_id INTEGER NOT NULL,
-        quantity INTEGER NOT NULL,
-        FOREIGN KEY (order_id) REFERENCES Orders (order_id)
+         order_item_id INTEGER PRIMARY KEY,
+         order_id INTEGER,
+         product_id INTEGER,
+         quantity INTEGER,
+         price DECIMAL(10,2),
+         FOREIGN KEY(order_id) REFERENCES Orders(order_id),
+         FOREIGN KEY(product_id) REFERENCES Products(product_id)
     )''')
     cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
                       VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
