@@ -1,5 +1,5 @@
 import os
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, make_response, redirect, render_template, request, session, url_for
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from matplotlib import use
@@ -439,12 +439,7 @@ def register():
 
 def save_image_to_database(image):
     if image:
-        # Extract filename from the image object
-        filename = secure_filename(image.filename)
-        filename_without_extension = os.path.splitext(filename)[0]
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        image.save(filepath)
-        return filename_without_extension
+        return image.read()
     else:
         return None
 
@@ -460,6 +455,7 @@ def upload_product():
         else:
             flash("User not logged in. Please log in to upload a product.", "error")
             return redirect(url_for("login"))
+            
         product_name = sanitize_input(request.form["product_name"])
         description = sanitize_input(request.form["description"])
         price = sanitize_input(request.form["price"])
@@ -468,14 +464,23 @@ def upload_product():
         quantity = sanitize_input(request.form["quantity"])
 
         image = request.files["image"]
-        image_url = save_image_to_database(image)
+        image_blob = save_image_to_database(image)
+
+        # Print the values to check if they are correct
+        print(f"User ID: {user_id}")
+        print(f"Product Name: {product_name}")
+        print(f"Description: {description}")
+        print(f"Price: {price}")
+        print(f"Size: {size}")
+        print(f"Condition: {condition}")
+        print(f"Quantity: {quantity}")
 
         # Connect to the database
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
         try:
             cursor.execute(
-                """ INSERT INTO Products (user_id, product_name, description, price, size, condition, image_url, quantity, created_at,
+                """ INSERT INTO Products (user_id, product_name, description, price, size, condition, image_blob, quantity, created_at,
                 verified) VALUES  (? ,?, ?, ?, ?, ?, ?, ?, datetime('now'),0)""",
                 (
                     user_id,
@@ -484,7 +489,7 @@ def upload_product():
                     price,
                     size,
                     condition,
-                    image_url,
+                    image_blob,
                     quantity,
                 ),
             )
@@ -505,6 +510,21 @@ def upload_product():
     else:
         return render_template("upload_product.html")
 
+@app.route("/product_image/<int:product_id>")
+def product_image(product_id):
+    # Connect to the database
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT image_blob FROM Products WHERE product_id = ?", (product_id,))
+    image_blob = cursor.fetchone()[0]
+    conn.close()
+
+    # Convert BLOB back to image
+    response = make_response(image_blob)
+    response.headers.set('Content-Type', 'image/jpeg')
+    response.headers.set(
+        'Content-Disposition', 'attachment', filename=f'product_{product_id}.jpg')
+    return response
 
 # Route to form used to add a new user to the database
 # @app.route("/enternew")
@@ -668,7 +688,7 @@ def view_products():
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT product_id, product_name, price, image_url, verified FROM Products"
+        "SELECT product_id, product_name, price, image_blob, verified FROM Products"
     )
     products = cursor.fetchall()
     conn.close()
@@ -680,7 +700,7 @@ def view_products():
             "product_id": product[0],
             "product_name": product[1],
             "price": product[2],
-            "image_url": product[3],
+            "image_blob": product[3],
             "verified": product[4],
         }
         products_list.append(product_dict)
@@ -736,7 +756,7 @@ def product_details(product_id):
             "price": product_details[4],
             "size": product_details[5],
             "condition": product_details[6],
-            "image_url": product_details[7],
+            "image_blob": product_details[7],
             "quantity": product_details[8],
             "created_at": product_details[9],
             "verified": product_details[10],
@@ -807,7 +827,7 @@ def my_products():
             "product_id": product[0],
             "product_name": product[2],
             "price": product[4],
-            "image_url": product[7],
+            "image_blob": product[7],
         }
         products_list.append(product_dict)
 
@@ -836,7 +856,7 @@ def my_products_details(product_id):
             "price": product_details[4],
             "size": product_details[5],
             "condition": product_details[6],
-            "image_url": product_details[7],
+            "image_blob": product_details[7],
             "quantity": product_details[8],
             "created_at": product_details[9],
             "verified": product_details[10],
@@ -1292,7 +1312,7 @@ def view_products_admin():
     con.row_factory = sqlite3.Row
 
     cur = con.cursor()
-    cur.execute("SELECT product_id, * FROM Products")
+    cur.execute("SELECT * FROM Products")
 
     rows = cur.fetchall()
     con.close()
