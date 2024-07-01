@@ -3,7 +3,7 @@
 import os
 import sqlite3
 import pytest
-from flask import session
+from flask import session, url_for
 from app import app
 
 @pytest.fixture
@@ -103,9 +103,10 @@ def test_add_to_cart(client):
     rv = client.post('/add_to_cart', data={
         'product_id': 1,
         'quantity': 2
-    }, follow_redirects=True)
-    assert rv.status_code == 200  # Ensure successful redirection
-    assert b'Product added to cart!' in rv.data
+    }, follow_redirects=False)  # Set follow_redirects=False to capture redirect URL
+
+    assert rv.status_code == 302  # Check for HTTP redirect status
+    assert rv.location == url_for("my_products_details", product_id=1, _external=True)  
 
 def test_remove_from_cart(client):
     with client.session_transaction() as sess:
@@ -117,12 +118,13 @@ def test_remove_from_cart(client):
         'quantity': 2
     }, follow_redirects=True)
 
-    # Then, remove the product from the cart
+    # Now, remove the product from the cart
     rv = client.post('/remove_from_cart', data={
         'cart_item_id': 1
-    }, follow_redirects=True)
-    assert rv.status_code == 200  # Ensure successful redirection
-    assert b'Product removed from cart!' in rv.data
+    }, follow_redirects=False)
+
+    assert rv.status_code == 302
+    assert rv.location == url_for("view_cart", _external=True)  
 
 def test_update_cart(client):
     with client.session_transaction() as sess:
@@ -134,10 +136,11 @@ def test_update_cart(client):
         'quantity': 2
     }, follow_redirects=True)
 
-    # Then, update the quantity of the product in the cart
+    # Now, update the quantity of the product in the cart
     rv = client.post('/update_cart', data={
         'cart_item_id': 1,
         'quantity': 5
-    }, follow_redirects=True)
-    assert rv.status_code == 200  # Ensure successful redirection
-    assert b'Cart updated!' in rv.data
+    }, follow_redirects=False)
+
+    assert rv.status_code == 302
+    assert rv.location == url_for("view_cart", _external=True)  
