@@ -439,7 +439,12 @@ def register():
 
 def save_image_to_database(image):
     if image:
-        return image.read()
+        try:
+            image_blob = image.read()
+            return image_blob
+        except Exception as e:
+            print("Error reading image:", e)
+            return None
     else:
         return None
 
