@@ -77,13 +77,16 @@ def init_db():
          FOREIGN KEY(product_id) REFERENCES Products(product_id)
     )''')
     cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
-                      VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
-    cursor.execute('''INSERT INTO Products (product_name, description, price, stock)
-                      VALUES (?, ?, ?, ?)''', ('Test Product', 'Test Description', 10.00, 5))
+                  VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
+
+    cursor.execute('''INSERT INTO Products (user_id, product_name, description, price, size, condition, image_url, quantity, created_at, verified)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', (1, 'Test Product', 'Test Description', 10.00, 'Medium', 'New', 'image_url.jpg', 5, '2024-07-01 12:00:00', True))
+
     cursor.execute('''INSERT INTO Shopping_Cart (user_id)
-                      VALUES (?)''', (1,))
+                  VALUES (?)''', (1,))
+
     cursor.execute('''INSERT INTO Cart_Items (cart_id, product_id, quantity)
-                      VALUES (?, ?, ?)''', (1, 1, 2))
+                  VALUES (?, ?, ?)''', (1, 1, 2))
     conn.commit()
     conn.close()
 
