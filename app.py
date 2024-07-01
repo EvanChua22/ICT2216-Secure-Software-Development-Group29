@@ -40,7 +40,7 @@ app.config.update(
     SESSION_COOKIE_SECURE=True,  
     SESSION_COOKIE_SAMESITE='Lax',
     SESSION_REFRESH_EACH_REQUEST = False,
-    PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour can be changed if needed
 )
 
 # This implements Session Timeout and is set to 1 hour
