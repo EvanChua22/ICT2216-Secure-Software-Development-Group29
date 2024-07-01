@@ -109,3 +109,4 @@ def test_process_payment(client):
         'total_amount': '20.00'
     }, follow_redirects=True)
     assert b'Payment successful!' in rv.data  
+#testtest
