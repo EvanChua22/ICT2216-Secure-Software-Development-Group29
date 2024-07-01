@@ -1,7 +1,8 @@
 import os
 import sqlite3
 import pytest
-from app import app
+from argon2 import PasswordHasher
+from app import app, init_db
 
 @pytest.fixture
 def client():
@@ -15,7 +16,7 @@ def client():
 
     with app.test_client() as client:
         with app.app_context():
-            init_db()
+            init_db()  # Initialize the database with Users and logs tables
         yield client
 
 def init_db():
@@ -42,9 +43,11 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     )''')
     
-    # Insert an example user for testing
+    # Insert an example user for testing with hashed password
+    ph = PasswordHasher()
+    hashed_password = ph.hash("password123")
     cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
-                      VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
+                      VALUES (?, ?, ?, ?, ?)''', ('testuser', hashed_password, '1234567890', 'test@example.com', 'user'))
     
     conn.commit()
     conn.close()
