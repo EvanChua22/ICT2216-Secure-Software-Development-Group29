@@ -104,7 +104,8 @@ def test_add_to_cart(client):
         'product_id': 1,
         'quantity': 2
     }, follow_redirects=True)
-    assert b'Product added to cart!' in rv.data  
+    assert rv.status_code == 200  # Ensure successful redirection
+    assert b'Product added to cart!' in rv.data
 
 def test_remove_from_cart(client):
     with client.session_transaction() as sess:
@@ -120,7 +121,8 @@ def test_remove_from_cart(client):
     rv = client.post('/remove_from_cart', data={
         'cart_item_id': 1
     }, follow_redirects=True)
-    assert b'Product removed from cart!' in rv.data  
+    assert rv.status_code == 200  # Ensure successful redirection
+    assert b'Product removed from cart!' in rv.data
 
 def test_update_cart(client):
     with client.session_transaction() as sess:
@@ -137,4 +139,5 @@ def test_update_cart(client):
         'cart_item_id': 1,
         'quantity': 5
     }, follow_redirects=True)
+    assert rv.status_code == 200  # Ensure successful redirection
     assert b'Cart updated!' in rv.data
