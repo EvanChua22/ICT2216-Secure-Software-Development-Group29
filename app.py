@@ -1107,7 +1107,7 @@ def add_to_cart():
     finally:
         conn.close()
 
-    return redirect(url_for("my_products_details", product_id=product_id))
+    return redirect(url_for("products_details", product_id=product_id))
 
 @app.route("/remove_from_cart", methods=["POST"])
 def remove_from_cart():

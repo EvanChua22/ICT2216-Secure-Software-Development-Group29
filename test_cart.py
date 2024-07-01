@@ -1,5 +1,3 @@
-# test_cart.py
-
 import os
 import sqlite3
 import pytest
@@ -86,7 +84,7 @@ def init_db():
     cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
                       VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
     
-# Insert example products
+    # Insert example products
     cursor.execute('''INSERT INTO Products (user_id, product_name, description, price, size, condition, image_url, quantity, verified)
                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', (1, 'Product A', 'Example product A description', 10.99, 'Medium', 'New', 'image_url_A.jpg', 10, True))
     
@@ -106,7 +104,7 @@ def test_add_to_cart(client):
     }, follow_redirects=False)  # Set follow_redirects=False to capture redirect URL
 
     assert rv.status_code == 302  # Check for HTTP redirect status
-    assert rv.location == url_for("my_products_details", product_id=1, _external=True)  
+    assert rv.location.endswith(url_for("products_details", product_id=1, _external=False))
 
 def test_remove_from_cart(client):
     with client.session_transaction() as sess:
@@ -124,7 +122,7 @@ def test_remove_from_cart(client):
     }, follow_redirects=False)
 
     assert rv.status_code == 302
-    assert rv.location == url_for("view_cart", _external=True)  
+    assert rv.location.endswith(url_for("view_cart", _external=False))
 
 def test_update_cart(client):
     with client.session_transaction() as sess:
@@ -143,4 +141,4 @@ def test_update_cart(client):
     }, follow_redirects=False)
 
     assert rv.status_code == 302
-    assert rv.location == url_for("view_cart", _external=True)  
+    assert rv.location.endswith(url_for("view_cart", _external=False))
