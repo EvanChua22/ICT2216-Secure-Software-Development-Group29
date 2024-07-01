@@ -86,11 +86,12 @@ def init_db():
     cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
                       VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
     
-    # Insert example products
-    cursor.execute('''INSERT INTO Products (product_name, price, description)
-                      VALUES (?, ?, ?)''', ('Product A', 10.99, 'Example product A description'))
-    cursor.execute('''INSERT INTO Products (product_name, price, description)
-                      VALUES (?, ?, ?)''', ('Product B', 19.99, 'Example product B description'))
+# Insert example products
+    cursor.execute('''INSERT INTO Products (user_id, product_name, description, price, size, condition, image_url, quantity, verified)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', (1, 'Product A', 'Example product A description', 10.99, 'Medium', 'New', 'image_url_A.jpg', 10, True))
+    
+    cursor.execute('''INSERT INTO Products (user_id, product_name, description, price, size, condition, image_url, quantity, verified)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', (1, 'Product B', 'Example product B description', 19.99, 'Large', 'Used', 'image_url_B.jpg', 5, False))
     
     conn.commit()
     conn.close()
