@@ -402,7 +402,7 @@ def register():
         password = sanitize_input(request.form.get("password"))
         phone_number = sanitize_input(request.form.get("phoneNum"))
         email = sanitize_input(request.form.get("email"), input_type='email')
-        role = "admin"
+        role = "user"
 
         hashed_password = ph.hash(password)
         print(f"hashed_password: {hashed_password}")
