@@ -1,6 +1,9 @@
+# test_cart.py
+
 import os
 import sqlite3
 import pytest
+from flask import session
 from app import app
 
 @pytest.fixture
@@ -8,6 +11,7 @@ def client():
     app.config['TESTING'] = True
     app.config['WTF_CSRF_ENABLED'] = False
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    app.secret_key = 'secret'  # Required for session handling
 
     # Remove the existing database file if it exists
     if os.path.exists('database.db'):
@@ -24,7 +28,7 @@ def init_db():
     
     # Create Users table if not exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS Users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         password TEXT NOT NULL,
         phoneNum TEXT NOT NULL,
@@ -37,7 +41,7 @@ def init_db():
     cursor.execute('''CREATE TABLE IF NOT EXISTS Shopping_Cart (
         cart_id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES Users (id)
+        FOREIGN KEY (user_id) REFERENCES Users (user_id)
     )''')
     
     # Create Cart_Items table if not exists
@@ -57,7 +61,7 @@ def init_db():
         rating INTEGER NOT NULL,
         comment TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES Users (id),
+        FOREIGN KEY (user_id) REFERENCES Users (user_id),
         FOREIGN KEY (product_id) REFERENCES Products (product_id)
     )''')
     
