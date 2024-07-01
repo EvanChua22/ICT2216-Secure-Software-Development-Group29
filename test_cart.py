@@ -21,6 +21,8 @@ def client():
 def init_db():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
+    
+    # Create Users table if not exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS Users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -30,11 +32,15 @@ def init_db():
         role TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     )''')
+    
+    # Create Shopping_Cart table if not exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS Shopping_Cart (
         cart_id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         FOREIGN KEY (user_id) REFERENCES Users (id)
     )''')
+    
+    # Create Cart_Items table if not exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS Cart_Items (
         cart_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
         cart_id INTEGER NOT NULL,
@@ -42,8 +48,23 @@ def init_db():
         quantity INTEGER NOT NULL,
         FOREIGN KEY (cart_id) REFERENCES Shopping_Cart (cart_id)
     )''')
+    
+    # Create Reviews table if not exists
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Reviews (
+        review_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        rating INTEGER NOT NULL,
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES Users (id),
+        FOREIGN KEY (product_id) REFERENCES Products (product_id)
+    )''')
+    
+    # Insert an example user for testing with plain password (you can hash it if needed)
     cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
                       VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
+    
     conn.commit()
     conn.close()
 
