@@ -117,7 +117,7 @@ def login():
         # Get the user input values from the input field
         name = sanitize_input(request.form.get("name"))
         password = sanitize_input(request.form.get("password"))
-        role = sanitize_input(request.form.get("role"))
+        # role = sanitize_input(request.form.get("role"))
 
         # Connect to the database
         conn = sqlite3.connect("database.db")
@@ -130,7 +130,7 @@ def login():
         if result:
             user_id = result[0]
             stored_password = result[2]
-            role = result[5]
+            # role = result[5]
 
             try:
                 # Verify the password using Argon2id
@@ -142,17 +142,17 @@ def login():
                 session["logged_in"] = True
                 session["user_id"] = user_id
                 session["name"] = name
-                session["role"] = role
+                # session["role"] = role
                 session["otp_verified"] = False
 
-                if role == "admin":
+                if name == "Admin2":
+                    session["role"] = "admin"
                     return redirect(url_for("list"))
-                elif role == "user":
+                else:
+                    session["role"] = "user"
                     # When doing testing and need to keep logging in, can just comment this and redirect to 'user_home' instead
                     return redirect(url_for("user_home"))
-
-                else:
-                    flash("Invalid identity", "error")
+                    
             except VerifyMismatchError:
                 # Password verification failed
                 flash("Invalid username or password", "error")
@@ -399,7 +399,7 @@ def register():
         password = sanitize_input(request.form.get("password"))
         phone_number = sanitize_input(request.form.get("phoneNum"))
         email = sanitize_input(request.form.get("email"))
-        role = sanitize_input(request.form.get("role"))
+        role = "user"
 
         hashed_password = ph.hash(password)
         print(f"hashed_password: {hashed_password}")
