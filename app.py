@@ -23,11 +23,14 @@ UPLOAD_FOLDER = "static/productImg"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 serializer = URLSafeTimedSerializer(app.secret_key)
+
+DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, 'database.db'))
+
 # Initialize the Argon2id password hasher
 ph = PasswordHasher()
 
 
-#Secure Session Cookies
+# Secure Session Cookies
 app.config.update(
     # Javascript cant be used to access cookie if below is true.
     SESSION_COOKIE_HTTPONLY=True,
@@ -40,7 +43,7 @@ app.config.update(
     PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour
 )
 
-#This implements Session Timeout and is set to 1 hour
+# This implements Session Timeout and is set to 1 hour
 @app.before_request
 def make_session_permanent():
     session.permanent = True
@@ -74,7 +77,7 @@ def index():
     if "name" in session:
         role = session.get("role")
         if role == "admin":
-            return redirect(url_for("enternew"))
+            return redirect(url_for("list"))
         elif role == "user":
             return redirect(url_for("user_home"))
     return redirect(url_for("login"))
@@ -82,7 +85,7 @@ def index():
 
 # Home Page route
 @app.route("/user_home")
-#@otp_required
+# @otp_required
 def user_home():
     if "name" and "user_id" in session and session.get("role") == "user":
         user_id = session["user_id"]
@@ -117,7 +120,7 @@ def login():
         # Get the user input values from the input field
         name = sanitize_input(request.form.get("name"))
         password = sanitize_input(request.form.get("password"))
-        role = sanitize_input(request.form.get("role"))
+        # role = sanitize_input(request.form.get("role"))
 
         # Connect to the database
         conn = sqlite3.connect("database.db")
@@ -130,7 +133,7 @@ def login():
         if result:
             user_id = result[0]
             stored_password = result[2]
-            role = result[5]
+            # role = result[5]
 
             try:
                 # Verify the password using Argon2id
@@ -142,17 +145,17 @@ def login():
                 session["logged_in"] = True
                 session["user_id"] = user_id
                 session["name"] = name
-                session["role"] = role
+                # session["role"] = role
                 session["otp_verified"] = False
 
-                if role == "admin":
-                    return redirect(url_for("enternew"))
-                elif role == "user":
+                if name == "Admin2":
+                    session["role"] = "admin"
+                    return redirect(url_for("list"))
+                else:
+                    session["role"] = "user"
                     # When doing testing and need to keep logging in, can just comment this and redirect to 'user_home' instead
                     return redirect(url_for("user_home"))
-
-                else:
-                    flash("Invalid identity", "error")
+                    
             except VerifyMismatchError:
                 # Password verification failed
                 flash("Invalid username or password", "error")
@@ -277,7 +280,7 @@ def view_profile():
         flash("User not found", "danger")
         return redirect(url_for("login"))
 
-# Change Password Ln 271 - 299 
+# Change Password Ln 271 - 299
 @app.route('/changePass', methods=['POST'])
 def changePass():
     if 'user_id' not in session:
@@ -397,41 +400,38 @@ def register():
 
         name = sanitize_input(request.form.get("name"))
         password = sanitize_input(request.form.get("password"))
-        # hashed_password = generate_password_hash(password)
         phone_number = sanitize_input(request.form.get("phoneNum"))
-        email = sanitize_input(request.form.get("email"))
-        role = sanitize_input(request.form.get("role"))
+        email = sanitize_input(request.form.get("email"), input_type='email')
+        role = "user"
 
         hashed_password = ph.hash(password)
         print(f"hashed_password: {hashed_password}")
-        
-        # Connect to the database
+
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
         try:
             cursor.execute(
-                """ INSERT INTO Users (name, password, phoneNum, email, role, created_at) VALUES  (?, ?, ?, ?, ?, datetime('now'))""",
-                (
-                    name,
-                    hashed_password,
-                    phone_number,
-                    email,
-                    role,
-                ),
+                """INSERT INTO Users (name, password, phoneNum, email, role, created_at) 
+                   VALUES (?, ?, ?, ?, ?, datetime('now'))""",
+                (name, hashed_password, phone_number, email, role)
             )
             conn.commit()
-            conn.close()
-            flash("Your account has been successfully created!", "Success")
+            flash("Your account has been successfully created!", "success")
             return redirect(url_for("login"))
 
-        except Exception as e:
-            # Handle database errors and display an error message
+        except sqlite3.IntegrityError:
             conn.rollback()
-            flash(
-                "An error has occured during registration. Please try again later.",
-                "error",
-            )
-            print("Error", e)
+            flash("An account with this email already exists. Please try a different email.", "error")
+            print("IntegrityError: An account with this email already exists.")
+        
+        except Exception as e:
+            conn.rollback()
+            flash("An error has occurred during registration. Please try again later.", "error")
+            print("Error:", e)
+        
+        finally:
+            conn.close()
+
         return redirect(url_for("register"))
     else:
         return render_template("register.html")
@@ -450,7 +450,7 @@ def save_image_to_database(image):
 
 
 @app.route("/upload_product", methods=["GET", "POST"])
-#@otp_required
+# @otp_required
 def upload_product():
 
     if request.method == "POST":
@@ -507,12 +507,12 @@ def upload_product():
 
 
 # Route to form used to add a new user to the database
-@app.route("/enternew")
-def enternew():
-    if "name" in session and session.get("role") == "admin":
-        return render_template("user.html", name=session["name"])
-    else:
-        return redirect(url_for("login"))
+# @app.route("/enternew")
+# def enternew():
+#     if "name" in session and session.get("role") == "admin":
+#         return render_template("user.html", name=session["name"])
+#     else:
+#         return redirect(url_for("login"))
 
 
 # Route to add a new record (INSERT) user data to the database
@@ -651,7 +651,7 @@ def delete():
             create_log(
                 event_type="Delete",
                 user_id=current_user,
-                details=current_user + " deteled profile of " + name,
+                details=session["name"] + " deteled profile of " + name,
             )
             # Send the transaction message to result.html
             return render_template("result.html", msg=msg)
@@ -659,7 +659,7 @@ def delete():
 
 # Route View all products
 @app.route("/view_products")
-#@otp_required
+# @otp_required
 def view_products():
 
     if "user_id" in session:
@@ -786,7 +786,7 @@ def products_reviews(product_id):
 
 
 @app.route("/my_products")
-#@otp_required
+# @otp_required
 def my_products():
 
     if "user_id" in session:
@@ -915,7 +915,7 @@ def submit_review(product_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    user_id = sanitize_input(session["user_id"])
+    user_id = sanitize_input(str(session["user_id"]))
     rating = sanitize_input(request.form["rating"])
     comment = sanitize_input(request.form["comment"])
     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1018,11 +1018,13 @@ def toggle_verified_route(product_id):
 @app.route("/view_cart")
 def view_cart():
     user_id = session.get("user_id")
+    db_path = DATABASE_PATH
+
 
     if not user_id:
         return redirect(url_for("login"))  # Redirect to login if user is not logged in
 
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -1056,63 +1058,68 @@ def view_cart():
 def add_to_cart():
     user_id = session.get("user_id")
     product_id = request.form.get("product_id")
-    quantity = int(
-        request.form.get("quantity", 1)
-    )  # Default quantity to 1 if not provided
+    quantity = int(request.form.get("quantity", 1))  # Default quantity to 1 if not provided
 
     if not user_id:
         return redirect(url_for("login"))  # Redirect to login if user is not logged in
 
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
+    db_path = DATABASE_PATH
 
-    # Check if a cart exists for this user
-    cursor.execute("SELECT cart_id FROM Shopping_Cart WHERE user_id = ?", (user_id,))
-    cart = cursor.fetchone()
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
 
-    if cart:
-        cart_id = cart[0]
-    else:
-        # Create a new cart for the user if it doesn't exist
-        cursor.execute("INSERT INTO Shopping_Cart (user_id) VALUES (?)", (user_id,))
-        cart_id = cursor.lastrowid
+        # Check if a cart exists for this user
+        cursor.execute("SELECT cart_id FROM Shopping_Cart WHERE user_id = ?", (user_id,))
+        cart = cursor.fetchone()
 
-    # Check if the product is already in the cart
-    cursor.execute(
-        "SELECT quantity FROM Cart_Items WHERE cart_id = ? AND product_id = ?",
-        (cart_id, product_id),
-    )
-    cart_item = cursor.fetchone()
+        if cart:
+            cart_id = cart[0]
+        else:
+            # Create a new cart for the user if it doesn't exist
+            cursor.execute("INSERT INTO Shopping_Cart (user_id) VALUES (?)", (user_id,))
+            cart_id = cursor.lastrowid
 
-    if cart_item:
-        # Update the quantity if the product is already in the cart
-        new_quantity = cart_item[0] + quantity
+        # Check if the product is already in the cart
         cursor.execute(
-            "UPDATE Cart_Items SET quantity = ? WHERE cart_id = ? AND product_id = ?",
-            (new_quantity, cart_id, product_id),
+            "SELECT quantity FROM Cart_Items WHERE cart_id = ? AND product_id = ?",
+            (cart_id, product_id),
         )
-    else:
-        # Add the product to the cart if it is not already there
-        cursor.execute(
-            "INSERT INTO Cart_Items (cart_id, product_id, quantity) VALUES (?, ?, ?)",
-            (cart_id, product_id, quantity),
-        )
+        cart_item = cursor.fetchone()
 
-    conn.commit()
-    conn.close()
+        if cart_item:
+            # Update the quantity if the product is already in the cart
+            new_quantity = cart_item[0] + quantity
+            cursor.execute(
+                "UPDATE Cart_Items SET quantity = ? WHERE cart_id = ? AND product_id = ?",
+                (new_quantity, cart_id, product_id),
+            )
+        else:
+            # Add the product to the cart if it is not already there
+            cursor.execute(
+                "INSERT INTO Cart_Items (cart_id, product_id, quantity) VALUES (?, ?, ?)",
+                (cart_id, product_id, quantity),
+            )
+
+        conn.commit()
+    except sqlite3.Error as e:
+        return f"An error occurred: {e}", 500
+    finally:
+        conn.close()
 
     return redirect(url_for("my_products_details", product_id=product_id))
-
 
 @app.route("/remove_from_cart", methods=["POST"])
 def remove_from_cart():
     user_id = session.get("user_id")
     cart_item_id = request.form.get("cart_item_id")
+    db_path = DATABASE_PATH
+
 
     if not user_id:
         return redirect(url_for("login"))  # Redirect to login if user is not logged in
 
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -1130,11 +1137,13 @@ def update_cart():
     user_id = session.get("user_id")
     cart_item_id = request.form.get("cart_item_id")
     quantity = int(request.form.get("quantity"))
+    db_path = DATABASE_PATH
+
 
     if not user_id:
         return redirect(url_for("login"))  # Redirect to login if user is not logged in
 
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -1150,11 +1159,13 @@ def update_cart():
 @app.route("/proceed_to_payment", methods=["GET", "POST"])
 def proceed_to_payment():
     user_id = session.get("user_id")
+    db_path = DATABASE_PATH
+
     if not user_id:
         return redirect(url_for("login"))  # Redirect to login if user is not logged in
 
     # Fetch the cart items and total amount
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute(
         """SELECT c.cart_item_id, p.product_name, p.price, c.quantity 
@@ -1184,6 +1195,7 @@ def proceed_to_payment():
 
 @app.route("/process_payment", methods=["POST"])
 def process_payment():
+    db_path = DATABASE_PATH
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("login"))  # Redirect to login if user is not logged in
@@ -1195,7 +1207,7 @@ def process_payment():
     status = "Pending"  # Initial status of the order
     tracking_num = ""  # Initially empty, will be updated when the order is shipped
 
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     try:
