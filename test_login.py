@@ -21,6 +21,8 @@ def client():
 def init_db():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
+    
+    # Create Users table if not exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS Users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -30,8 +32,20 @@ def init_db():
         role TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     )''')
+    
+    # Create Logs table if not exists
+    cursor.execute('''CREATE TABLE IF NOT EXISTS logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_type TEXT NOT NULL,
+        user_id INTEGER,
+        details TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+    )''')
+    
+    # Insert an example user for testing
     cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
                       VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
+    
     conn.commit()
     conn.close()
 
