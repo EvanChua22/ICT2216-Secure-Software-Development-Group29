@@ -58,7 +58,6 @@ def test_register_duplicate(client):
         'email': 'test@example.com',
         'role': 'user'
     }, follow_redirects=True)
-    print(response1.data)
     assert b'Your account has been successfully created!' in response1.data
 
     # Try to register the same user again
@@ -69,5 +68,4 @@ def test_register_duplicate(client):
         'email': 'test@example.com',
         'role': 'user'
     }, follow_redirects=True)
-    print(response2.data)
     assert b'An account with this email already exists. Please try a different email.' in response2.data

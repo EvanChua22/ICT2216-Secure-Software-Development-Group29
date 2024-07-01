@@ -1,8 +1,7 @@
 import os
 import sqlite3
 import pytest
-from app import app, ph
-from datetime import datetime
+from app import app
 
 @pytest.fixture
 def client():
@@ -49,18 +48,13 @@ def init_db():
         cart_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
         quantity INTEGER NOT NULL,
-        FOREIGN KEY (cart_id) REFERENCES Shopping_Cart (cart_id),
-        FOREIGN KEY (product_id) REFERENCES Products (id)
+        FOREIGN KEY (cart_id) REFERENCES Shopping_Cart (cart_id)
     )''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS Orders (
         order_id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
-        order_date TIMESTAMP NOT NULL,
         total_amount REAL NOT NULL,
-        status TEXT NOT NULL,
-        tracking_num TEXT,
-        shipping_address TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
         FOREIGN KEY (user_id) REFERENCES Users (id)
     )''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS Order_Items (
@@ -68,26 +62,16 @@ def init_db():
         order_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
         quantity INTEGER NOT NULL,
-        price REAL NOT NULL,
-        FOREIGN KEY (order_id) REFERENCES Orders (order_id),
-        FOREIGN KEY (product_id) REFERENCES Products (id)
-    )''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS Payments (
-        payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        order_id INTEGER NOT NULL,
-        payment_amt REAL NOT NULL,
-        payment_method TEXT NOT NULL,
-        payment_date TIMESTAMP NOT NULL,
-        status TEXT NOT NULL,
         FOREIGN KEY (order_id) REFERENCES Orders (order_id)
     )''')
     cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
-                      VALUES (?, ?, ?, ?, ?)''', ('testuser', ph.hash('password123'), '1234567890', 'test@example.com', 'user'))
+                      VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
     cursor.execute('''INSERT INTO Products (product_name, description, price, stock)
-                      VALUES (?, ?, ?, ?)''', ('Test Product', 'This is a test product', 10.00, 100))
-    cursor.execute('''INSERT INTO Shopping_Cart (user_id) VALUES (1)''')
+                      VALUES (?, ?, ?, ?)''', ('Test Product', 'Test Description', 10.00, 5))
+    cursor.execute('''INSERT INTO Shopping_Cart (user_id)
+                      VALUES (?)''', (1,))
     cursor.execute('''INSERT INTO Cart_Items (cart_id, product_id, quantity)
-                      VALUES (1, 1, 2)''')
+                      VALUES (?, ?, ?)''', (1, 1, 2))
     conn.commit()
     conn.close()
 
@@ -109,4 +93,3 @@ def test_process_payment(client):
         'total_amount': '20.00'
     }, follow_redirects=True)
     assert b'Payment successful!' in rv.data  
-#testtest

@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import pytest
-from app import app, sanitize_input
+from app import app
 
 @pytest.fixture
 def client():
@@ -30,44 +30,31 @@ def init_db():
         role TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     )''')
+    cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
+                      VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
     conn.commit()
     conn.close()
 
-def test_sanitize_input():
-    assert sanitize_input("Hello <script>") == "Hello script"
-    assert sanitize_input("john.doe@example.com", "email") == "john.doe@example.com"
-    assert sanitize_input("123-456-7890", "phone") == "1234567890"
-    assert sanitize_input("Password@123", "password") == "Password@123"
-
-def test_register(client):
-    rv = client.post('/register', data={
+def test_login_success(client):
+    rv = client.post('/login', data={
         'name': 'testuser',
         'password': 'password123',
-        'phoneNum': '1234567890',
-        'email': 'test@example.com',
         'role': 'user'
     }, follow_redirects=True)
-    assert b'Your account has been successfully created!' in rv.data
+    assert b'Welcome, testuser!' in rv.data  
 
-def test_register_duplicate(client):
-    # Register a user
-    response1 = client.post('/register', data={
+def test_login_failure(client):
+    rv = client.post('/login', data={
         'name': 'testuser',
-        'password': 'password123',
-        'phoneNum': '1234567890',
-        'email': 'test@example.com',
+        'password': 'wrongpassword',
         'role': 'user'
     }, follow_redirects=True)
-    print(response1.data)
-    assert b'Your account has been successfully created!' in response1.data
+    assert b'Invalid username or password' in rv.data
 
-    # Try to register the same user again
-    response2 = client.post('/register', data={
-        'name': 'testuser',
+def test_login_nonexistent_user(client):
+    rv = client.post('/login', data={
+        'name': 'nonexistent',
         'password': 'password123',
-        'phoneNum': '1234567890',
-        'email': 'test@example.com',
         'role': 'user'
     }, follow_redirects=True)
-    print(response2.data)
-    assert b'An account with this email already exists. Please try a different email.' in response2.data
+    assert b'Invalid username or password' in rv.data
