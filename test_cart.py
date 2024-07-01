@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import pytest
-from app import app, ph  # Ensure to import any other necessary components
+from app import app, ph  
 
 @pytest.fixture
 def client():
@@ -41,6 +41,24 @@ def init_db():
         product_id INTEGER NOT NULL,
         quantity INTEGER NOT NULL,
         FOREIGN KEY (cart_id) REFERENCES Shopping_Cart (cart_id)
+    )''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Reviews (
+        review_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        rating INTEGER NOT NULL,
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES Users (id),
+        FOREIGN KEY (product_id) REFERENCES Products (id)
+    )''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        price REAL NOT NULL,
+        stock INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     )''')
     conn.commit()
     cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
