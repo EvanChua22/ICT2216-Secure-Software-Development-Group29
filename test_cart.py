@@ -39,11 +39,18 @@ def init_db():
     
     # Create Products table if not exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS Products (
-        product_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        price REAL NOT NULL,
-        description TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+            product_id INTEGER PRIMARY KEY,
+            user_id INTEGER,
+            product_name VARCHAR(45),
+            description VARCHAR(45),
+            price DECIMAL(10,2),
+            size VARCHAR(10),
+            condition VARCHAR(20),
+            image_url VARCHAR(255),
+            quantity INTEGER,
+            created_at DATETIME,
+            verified BOOLEAN,
+            FOREIGN KEY(user_id) REFERENCES Users(user_id)
     )''')
     
     # Create Shopping_Cart table if not exists
