@@ -39,7 +39,7 @@ def init_db():
     
     # Create Products table if not exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS Products (
-            product_id INTEGER PRIMARY KEY,
+            product_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
             product_name VARCHAR(45),
             description VARCHAR(45),
@@ -55,19 +55,19 @@ def init_db():
     
     # Create Shopping_Cart table if not exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS Shopping_Cart (
-        cart_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES Users (user_id)
+         cart_id INTEGER PRIMARY KEY AUTOINCREMENT,
+         user_id INTEGER,
+         FOREIGN KEY(user_id) REFERENCES Users(user_id)
     )''')
     
     # Create Cart_Items table if not exists
     cursor.execute('''CREATE TABLE IF NOT EXISTS Cart_Items (
         cart_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        cart_id INTEGER NOT NULL,
-        product_id INTEGER NOT NULL,
-        quantity INTEGER NOT NULL,
-        FOREIGN KEY (cart_id) REFERENCES Shopping_Cart (cart_id),
-        FOREIGN KEY (product_id) REFERENCES Products (product_id)
+        cart_id INTEGER,
+        product_id INTEGER,
+        quantity INTEGER,
+        FOREIGN KEY(cart_id) REFERENCES Shopping_Cart(cart_id),
+        FOREIGN KEY(product_id) REFERENCES Products(product_id)
     )''')
     
     # Create Reviews table if not exists
@@ -87,7 +87,7 @@ def init_db():
                       VALUES (?, ?, ?, ?, ?)''', ('testuser', 'password123', '1234567890', 'test@example.com', 'user'))
     
     # Insert example products
-    cursor.execute('''INSERT INTO Products (name, price, description)
+    cursor.execute('''INSERT INTO Products (product_name, price, description)
                       VALUES (?, ?, ?)''', ('Product A', 10.99, 'Example product A description'))
     cursor.execute('''INSERT INTO Products (name, price, description)
                       VALUES (?, ?, ?)''', ('Product B', 19.99, 'Example product B description'))
