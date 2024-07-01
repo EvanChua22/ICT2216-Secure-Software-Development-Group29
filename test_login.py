@@ -1,8 +1,10 @@
+# test_login.py
+
 import os
 import sqlite3
 import pytest
+from app import app
 from argon2 import PasswordHasher
-from app import app, init_db
 
 @pytest.fixture
 def client():
@@ -44,8 +46,7 @@ def init_db():
     )''')
     
     # Insert an example user for testing with hashed password
-    ph = PasswordHasher()
-    hashed_password = ph.hash("password123")
+    hashed_password = '$argon2id$v=19$m=10240,t=10,p=8$c2VjcmV0$MFc5cE1RM2ZuU0FqMllYcw$X2vMM4WjTw4vfTYyB1/9pQ'
     cursor.execute('''INSERT INTO Users (name, password, phoneNum, email, role)
                       VALUES (?, ?, ?, ?, ?)''', ('testuser', hashed_password, '1234567890', 'test@example.com', 'user'))
     
