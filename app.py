@@ -975,8 +975,8 @@ def delete_product(product_id):
     cursor = conn.cursor()
 
     cursor.execute(
-        "SELECT * FROM Products WHERE product_id = ? AND user_id = ?",
-        (product_id, user_id),
+        "SELECT * FROM Products WHERE product_id = ? ",
+        (product_id,),
     )
     product = cursor.fetchone()
 
