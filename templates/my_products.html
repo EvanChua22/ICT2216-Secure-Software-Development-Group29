@@ -10,7 +10,7 @@
                     {% for product in products_list[i:i+3] %}
                         <div class="col mb-5{% if loop.index == 3 and loop.first %} offset-md-2{% endif %}">
                             <div class="card h-100">
-                                <img src="{{ url_for('static', filename='productImg/' + product.image_url + '.jpg') }}" class="card-img-top" alt="{{ product.product_name }}">
+                                <img src="{{ url_for('product_image', product_id=product.product_id) }}" class="card-img-top" alt="{{ product.product_name }}">
                                 <div class="card-body p-4">
                                     <div class="text-center">
                                         <h5 class="card-title">{{ product.product_name }}</h5>

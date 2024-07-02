@@ -1,5 +1,5 @@
 import os
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, make_response, redirect, render_template, request, session, url_for
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from matplotlib import use
@@ -30,21 +30,24 @@ DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, 'dat
 ph = PasswordHasher()
 
 
-#Secure Session Cookies
+# Secure Session Cookies
 app.config.update(
+    # Javascript cant be used to access cookie if below is true.
     SESSION_COOKIE_HTTPONLY=True,
     
     #set this to true when site is using HTTPS
     #Ensures that the session cookie is only sent over HTTPS
-    SESSION_COOKIE_SECURE=False,  
+    SESSION_COOKIE_SECURE=True,  
     SESSION_COOKIE_SAMESITE='Lax',
-    PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour
+    SESSION_REFRESH_EACH_REQUEST = False,
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour can be changed if needed
 )
 
-#This implements Session Timeout and is set to 1 hour
+# This implements Session Timeout and is set to 1 hour
 @app.before_request
 def make_session_permanent():
     session.permanent = True
+    #TODO Set to 1 minute for testing. Change back to 1hr. 
     app.permanent_session_lifetime = timedelta(hours=1)
     session.modified = True
 
@@ -74,7 +77,7 @@ def index():
     if "name" in session:
         role = session.get("role")
         if role == "admin":
-            return redirect(url_for("enternew"))
+            return redirect(url_for("list"))
         elif role == "user":
             return redirect(url_for("user_home"))
     return redirect(url_for("login"))
@@ -82,7 +85,7 @@ def index():
 
 # Home Page route
 @app.route("/user_home")
-#@otp_required
+# @otp_required
 def user_home():
     if "name" and "user_id" in session and session.get("role") == "user":
         user_id = session["user_id"]
@@ -117,7 +120,7 @@ def login():
         # Get the user input values from the input field
         name = sanitize_input(request.form.get("name"))
         password = sanitize_input(request.form.get("password"))
-        role = sanitize_input(request.form.get("role"))
+        # role = sanitize_input(request.form.get("role"))
 
         # Connect to the database
         conn = sqlite3.connect("database.db")
@@ -130,7 +133,7 @@ def login():
         if result:
             user_id = result[0]
             stored_password = result[2]
-            role = result[5]
+            # role = result[5]
 
             try:
                 # Verify the password using Argon2id
@@ -142,17 +145,17 @@ def login():
                 session["logged_in"] = True
                 session["user_id"] = user_id
                 session["name"] = name
-                session["role"] = role
+                # session["role"] = role
                 session["otp_verified"] = False
 
-                if role == "admin":
-                    return redirect(url_for("enternew"))
-                elif role == "user":
+                if name == "Admin2":
+                    session["role"] = "admin"
+                    return redirect(url_for("list"))
+                else:
+                    session["role"] = "user"
                     # When doing testing and need to keep logging in, can just comment this and redirect to 'user_home' instead
                     return redirect(url_for("user_home"))
-
-                else:
-                    flash("Invalid identity", "error")
+                    
             except VerifyMismatchError:
                 # Password verification failed
                 flash("Invalid username or password", "error")
@@ -277,7 +280,7 @@ def view_profile():
         flash("User not found", "danger")
         return redirect(url_for("login"))
 
-# Change Password Ln 271 - 299 
+# Change Password Ln 271 - 299
 @app.route('/changePass', methods=['POST'])
 def changePass():
     if 'user_id' not in session:
@@ -398,8 +401,8 @@ def register():
         name = sanitize_input(request.form.get("name"))
         password = sanitize_input(request.form.get("password"))
         phone_number = sanitize_input(request.form.get("phoneNum"))
-        email = sanitize_input(request.form.get("email"))
-        role = sanitize_input(request.form.get("role"))
+        email = sanitize_input(request.form.get("email"), input_type='email')
+        role = "user"
 
         hashed_password = ph.hash(password)
         print(f"hashed_password: {hashed_password}")
@@ -436,18 +439,18 @@ def register():
 
 def save_image_to_database(image):
     if image:
-        # Extract filename from the image object
-        filename = secure_filename(image.filename)
-        filename_without_extension = os.path.splitext(filename)[0]
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        image.save(filepath)
-        return filename_without_extension
+        try:
+            image_blob = image.read()
+            return image_blob
+        except Exception as e:
+            print("Error reading image:", e)
+            return None
     else:
         return None
 
 
 @app.route("/upload_product", methods=["GET", "POST"])
-#@otp_required
+# @otp_required
 def upload_product():
 
     if request.method == "POST":
@@ -457,6 +460,7 @@ def upload_product():
         else:
             flash("User not logged in. Please log in to upload a product.", "error")
             return redirect(url_for("login"))
+            
         product_name = sanitize_input(request.form["product_name"])
         description = sanitize_input(request.form["description"])
         price = sanitize_input(request.form["price"])
@@ -465,14 +469,23 @@ def upload_product():
         quantity = sanitize_input(request.form["quantity"])
 
         image = request.files["image"]
-        image_url = save_image_to_database(image)
+        image_blob = save_image_to_database(image)
+
+        # Print the values to check if they are correct
+        print(f"User ID: {user_id}")
+        print(f"Product Name: {product_name}")
+        print(f"Description: {description}")
+        print(f"Price: {price}")
+        print(f"Size: {size}")
+        print(f"Condition: {condition}")
+        print(f"Quantity: {quantity}")
 
         # Connect to the database
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
         try:
             cursor.execute(
-                """ INSERT INTO Products (user_id, product_name, description, price, size, condition, image_url, quantity, created_at,
+                """ INSERT INTO Products (user_id, product_name, description, price, size, condition, image_blob, quantity, created_at,
                 verified) VALUES  (? ,?, ?, ?, ?, ?, ?, ?, datetime('now'),0)""",
                 (
                     user_id,
@@ -481,14 +494,14 @@ def upload_product():
                     price,
                     size,
                     condition,
-                    image_url,
+                    image_blob,
                     quantity,
                 ),
             )
             conn.commit()
             conn.close()
             flash("Your product has been successfully uploaded!", "Success")
-            return redirect(url_for("upload_product"))
+            return redirect(url_for("user_home"))
 
         except Exception as e:
             # Handle database errors and display an error message
@@ -502,14 +515,29 @@ def upload_product():
     else:
         return render_template("upload_product.html")
 
+@app.route("/product_image/<int:product_id>")
+def product_image(product_id):
+    # Connect to the database
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT image_blob FROM Products WHERE product_id = ?", (product_id,))
+    image_blob = cursor.fetchone()[0]
+    conn.close()
+
+    # Convert BLOB back to image
+    response = make_response(image_blob)
+    response.headers.set('Content-Type', 'image/jpeg')
+    response.headers.set(
+        'Content-Disposition', 'attachment', filename=f'product_{product_id}.jpg')
+    return response
 
 # Route to form used to add a new user to the database
-@app.route("/enternew")
-def enternew():
-    if "name" in session and session.get("role") == "admin":
-        return render_template("user.html", name=session["name"])
-    else:
-        return redirect(url_for("login"))
+# @app.route("/enternew")
+# def enternew():
+#     if "name" in session and session.get("role") == "admin":
+#         return render_template("user.html", name=session["name"])
+#     else:
+#         return redirect(url_for("login"))
 
 
 # Route to add a new record (INSERT) user data to the database
@@ -648,7 +676,7 @@ def delete():
             create_log(
                 event_type="Delete",
                 user_id=current_user,
-                details=current_user + " deteled profile of " + name,
+                details=session["name"] + " deteled profile of " + name,
             )
             # Send the transaction message to result.html
             return render_template("result.html", msg=msg)
@@ -656,7 +684,7 @@ def delete():
 
 # Route View all products
 @app.route("/view_products")
-#@otp_required
+# @otp_required
 def view_products():
 
     if "user_id" in session:
@@ -665,7 +693,7 @@ def view_products():
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT product_id, product_name, price, image_url, verified FROM Products"
+        "SELECT product_id, product_name, price, image_blob, verified FROM Products"
     )
     products = cursor.fetchall()
     conn.close()
@@ -677,7 +705,7 @@ def view_products():
             "product_id": product[0],
             "product_name": product[1],
             "price": product[2],
-            "image_url": product[3],
+            "image_blob": product[3],
             "verified": product[4],
         }
         products_list.append(product_dict)
@@ -732,7 +760,7 @@ def product_details(product_id):
             "price": product_details[4],
             "size": product_details[5],
             "condition": product_details[6],
-            "image_url": product_details[7],
+            "image_blob": product_details[7],
             "quantity": product_details[8],
             "created_at": product_details[9],
             "verified": product_details[10],
@@ -782,7 +810,7 @@ def products_reviews(product_id):
 
 
 @app.route("/my_products")
-#@otp_required
+# @otp_required
 def my_products():
 
     if "user_id" in session:
@@ -803,7 +831,7 @@ def my_products():
             "product_id": product[0],
             "product_name": product[2],
             "price": product[4],
-            "image_url": product[7],
+            "image_blob": product[7],
         }
         products_list.append(product_dict)
 
@@ -832,7 +860,7 @@ def my_products_details(product_id):
             "price": product_details[4],
             "size": product_details[5],
             "condition": product_details[6],
-            "image_url": product_details[7],
+            "image_blob": product_details[7],
             "quantity": product_details[8],
             "created_at": product_details[9],
             "verified": product_details[10],
@@ -1268,6 +1296,7 @@ def process_payment():
         )
 
         conn.commit()
+        flash("Payment successful!", "success")
         return render_template("success.html")
 
     except Exception as e:
@@ -1287,7 +1316,7 @@ def view_products_admin():
     con.row_factory = sqlite3.Row
 
     cur = con.cursor()
-    cur.execute("SELECT product_id, * FROM Products")
+    cur.execute("SELECT * FROM Products")
 
     rows = cur.fetchall()
     con.close()

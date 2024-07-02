@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 document.getElementById('image').addEventListener('change', function(event) {
     const file = event.target.files[0];
     if (file) {
@@ -46,3 +47,5 @@ document.getElementById('image').addEventListener('change', function(event) {
         };
     reader.readAsDataURL(event.target.files[0]);
 });*/
+=======
+>>>>>>> c256cf2a8bbf86d05e0e4e2bcb586c4206e246b2
