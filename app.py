@@ -686,7 +686,6 @@ def view_products():
         "view_products.html", products_list=products_list, user_id=user_id
     )
 
-
 @app.route("/search_products", methods=["GET"])
 def search_products():
     query = sanitize_input(request.args.get("query"))
