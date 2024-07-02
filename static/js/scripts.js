@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             output.style.maxHeight = '200px'; // Set maximum height
                         };
                         img.onerror = function() {
-                            // File is not a valid image
+                            // File is not a valid imageS
                             alert('Please upload a valid image file.');
                             event.target.value = ''; // Clear the file input
                             document.getElementById('image-preview').style.display = 'none';
