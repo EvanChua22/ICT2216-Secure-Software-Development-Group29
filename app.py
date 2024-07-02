@@ -16,6 +16,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignat
 from werkzeug.security import generate_password_hash
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+import dns.resolver
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Provide a secret key for session management
@@ -85,7 +86,7 @@ def index():
 
 # Home Page route
 @app.route("/user_home")
-# @otp_required
+#@otp_required
 def user_home():
     if "name" and "user_id" in session and session.get("role") == "user":
         user_id = session["user_id"]
@@ -155,7 +156,7 @@ def login():
                     session["role"] = "user"
                     # When doing testing and need to keep logging in, can just comment this and redirect to 'user_home' instead
                     return redirect(url_for("user_home"))
-                    
+                    # return redirect(url_for("sendOTP"))
             except VerifyMismatchError:
                 # Password verification failed
                 flash("Invalid username or password", "error")
@@ -170,7 +171,7 @@ def login():
     return render_template("login.html")
 
 
-# Multi-Factor Authentication Ln 161 - 238
+# Multi-Factor Authentication
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
 
@@ -181,11 +182,30 @@ def send_email(recipient_email, subject, body):
     smtp_username = 'mobsectest123@outlook.com'
     smtp_password = 'Mobilesecpassword111'
 
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
-        server.starttls()
-        server.login(smtp_username, smtp_password)
-        message = f"Subject: {subject}\n\n{body}"
-        server.sendmail(smtp_username, recipient_email, message)
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            message = f"Subject: {subject}\n\n{body}"
+            server.sendmail(smtp_username, recipient_email, message)
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+def emailValidity(email):
+    # Define a regular expression for validating an Email
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    if re.match(email_regex, email) is None:
+        return False
+    
+    # Extract the domain part of the email
+    domain = email.split('@')[1]
+    
+    # Perform DNS lookup for the domain
+    try:
+        dns.resolver.resolve(domain, 'MX')
+        return True
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN, dns.resolver.Timeout):
+        return False
 
 
 @app.route("/sendOTP")
@@ -280,7 +300,7 @@ def view_profile():
         flash("User not found", "danger")
         return redirect(url_for("login"))
 
-# Change Password Ln 271 - 299
+# Change Password
 @app.route('/changePass', methods=['POST'])
 def changePass():
     if 'user_id' not in session:
@@ -312,11 +332,16 @@ def changePass():
     return redirect(url_for('view_profile'))
 
 
-# Forgot Password Service Ln 303 - 373
+# Forgot Password Service
 @app.route("/forgotPass", methods=["GET", "POST"])
 def forgotPass():
     if request.method == 'POST':
         email = request.form['email']
+        
+        # Check if email is valid
+        if not emailValidity(email):
+            flash('Invalid email address format.', 'error')
+            return redirect(url_for('forgotPass'))
         
         # Execute raw SQL query using sqlite3
         conn = sqlite3.connect("database.db")
@@ -344,8 +369,10 @@ def forgotPass():
             flash('A password reset link has been sent to your email.', 'info')
             print('A password reset link has been sent to your email.')
         else:
-            flash('No account with that email address exists.', 'warning')
-            print('No account with that email address exists.')
+            # gives generic msg even if email is not associated with any account
+            # without actually sending
+            flash('A password reset link has been sent to your email.', 'info')
+            print('A password reset link has been sent to your email.')
         return redirect(url_for('forgotPass'))
     
     return render_template("forgotPass.html")
@@ -450,7 +477,7 @@ def save_image_to_database(image):
 
 
 @app.route("/upload_product", methods=["GET", "POST"])
-# @otp_required
+#@otp_required
 def upload_product():
 
     if request.method == "POST":
@@ -684,7 +711,7 @@ def delete():
 
 # Route View all products
 @app.route("/view_products")
-# @otp_required
+#@otp_required
 def view_products():
 
     if "user_id" in session:
@@ -810,7 +837,7 @@ def products_reviews(product_id):
 
 
 @app.route("/my_products")
-# @otp_required
+#@otp_required
 def my_products():
 
     if "user_id" in session:
