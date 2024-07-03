@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+    {% include "header.html" %}
+    <body>
+        {% include "navbar.html" %}
+        <main class="container-fluid">
+            <div class="d-flex h-75 flex-column min-vh-100" style="padding-top: 2%; padding-bottom: 2%;">
+                <div class="card align-self-center bg-light border-light">
+                    <div class="card-body mx-5">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }}" role="alert">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        <h3 class="fw-bold mb-4 pt-2 text-center">Too Many Requests</h3>
+                        <p class="text-center">You have exceeded the number of allowed requests. Please try again later.</p>
+                        <div class="text-center">
+                            <a href="{{ url_for('index') }}" class="btn btn-dark btn-block mb-4">Go to Homepage</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        {% include "footer.html" %}
+    </body>
+</html>
