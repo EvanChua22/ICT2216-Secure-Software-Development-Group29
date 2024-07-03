@@ -40,7 +40,8 @@
                         <th>Email</th>
                         <th>Role</th>
                         <th>Created At</th>
-                        <th>Action</th>
+                        <th>Actions</th>
+                       
                     </tr>
                 </thead>
                 <tbody>
@@ -56,6 +57,17 @@
                         <td class="text-center">
                             <form onsubmit="return confirm('Are you sure you want to DELETE this User from the Database?');"
                                 action="{{ url_for('delete') }}" method="POST" class="d-inline">
+                                <input type="hidden" name="user_id" value="{{ row['user_id'] }}">
+                                <input type="hidden" name="name" value="{{ row['name'] }}">
+                                <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></button>
+                            </form>
+
+                        
+
+                        <!-- Someone help change this icon pls. -->
+                     
+                            <form onsubmit="return confirm('Unlock This Users Account?');"
+                                action="{{ url_for('unlock') }}" method="POST" class="d-inline">
                                 <input type="hidden" name="user_id" value="{{ row['user_id'] }}">
                                 <input type="hidden" name="name" value="{{ row['name'] }}">
                                 <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></button>

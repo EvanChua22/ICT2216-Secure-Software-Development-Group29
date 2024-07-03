@@ -110,17 +110,48 @@ def sanitize_input(input_data, input_type="text"):
         return re.sub(r"[^\d]", "", input_data)
     return input_data
 
+
+@app.route("/unlock", methods=["GET", "POST"])
+def unlock():
+    name = request.form.get('name')
+
+    try:
+        conn = sqlite3.connect("database.db")
+        cursor = conn.cursor()
+        # Resets login_attempts to 0, unlocking account. 
+        cursor.execute("UPDATE Users SET login_attempts = 0 WHERE name = ?", (name,))
+        conn.commit()
+    except:
+        print('fail')
+
+    return redirect(request.referrer)
+
+# TODO Why allow 'GET' For login? Remove if not necessary. 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         # Get the user input values from the input field
         name = sanitize_input(request.form.get("name"))
         password = sanitize_input(request.form.get("password"))
-        # role = sanitize_input(request.form.get("role"))
-
+       
         # Connect to the database
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
+
+        # TODO TO DELETE. IF THE ACCOUNT U USING FOR TESTING GETS LOCKED. UNCOMMENT BELOW 2 LINES AND TRY LOGIN WITH
+        # THAT USERNAME. WILL RESET LOGIN_ATTEMPT COUNTER TO 0
+        # cursor.execute("UPDATE Users SET login_attempts = 1 WHERE name = ?", (name,))
+        # conn.commit()
+        # END OF DELETE.
+        
+        # Checking if account has reached failed login attempts.
+        login_attempts = cursor.execute("SELECT login_attempts FROM Users WHERE name = ?", (name,) ).fetchone()
+        print(f"Login attempts: {login_attempts}")
+        if ( login_attempts and login_attempts[0] >= 5 ):
+            flash("Your account has been locked. Contact An Admin To Unlock Your Account")
+            # Does not continue onto validation for locked accounts. 
+            return render_template('login.html')
+
 
         # Retrieve the user's hashed password from the database
         cursor.execute("SELECT * FROM Users WHERE name = ?", (name,))
@@ -144,6 +175,14 @@ def login():
                 # session["role"] = role
                 session["otp_verified"] = False
 
+                # Reset the Login_attempts counter
+                try:
+                    cursor.execute("UPDATE Users SET login_attempts = 0 WHERE name = ?", (name))
+                    conn.commit()
+                except:
+                    print(result)
+                    print("Trying to reset login attemps for user")
+
                 if name == "Admin2":
                     session["role"] = "admin"
                     return redirect(url_for("list"))
@@ -155,6 +194,16 @@ def login():
             except VerifyMismatchError:
                 # Password verification failed
                 flash("Invalid username or password", "error")
+
+                # Increase Failed Login in by 1
+                try:
+                    cursor.execute("UPDATE Users SET login_attempts = login_attempts + 1 WHERE name = ?", (name,))
+                    conn.commit()
+                except:
+                    print(result)
+                    print("Trying to increase login attemps for user")
+
+
         else:
             flash("Invalid username or password", "error")
 
