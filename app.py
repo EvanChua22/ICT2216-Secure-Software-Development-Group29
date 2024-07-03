@@ -17,6 +17,11 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 import dns.resolver
 
+#imports for rate limiting 
+from flask import Flask, request, jsonify
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Provide a secret key for session management
 UPLOAD_FOLDER = "static/productImg"
@@ -29,6 +34,17 @@ DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, 'dat
 # Initialize the Argon2id password hasher
 ph = PasswordHasher()
 
+# Initialize the Limiter
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"]
+)
+
+# Redirect rate limit error to its own html
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return render_template("rate_limit_exceeded.html"), 429
 
 # Secure Session Cookies
 app.config.update(
@@ -128,6 +144,7 @@ def unlock():
 
 # TODO Why allow 'GET' For login? Remove if not necessary. 
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")  # Limit login attempts to 5 per minute
 def login():
     if request.method == "POST":
         # Get the user input values from the input field
@@ -253,6 +270,7 @@ def emailValidity(email):
 
 
 @app.route("/sendOTP")
+@limiter.limit("5 per minute") 
 def sendOTP():
     if not session.get("logged_in") or session.get("otp_verified"):
         return redirect(url_for("login"))
@@ -379,6 +397,7 @@ def changePass():
 
 # Forgot Password Service
 @app.route("/forgotPass", methods=["GET", "POST"])
+@limiter.limit("3 per minute")
 def forgotPass():
     if request.method == 'POST':
         email = request.form['email']
@@ -472,6 +491,7 @@ def passwordStrength(password):
     return pattern.match(password)
 
 @app.route("/register", methods=["GET", "POST"])
+@limiter.limit("3 per minute")
 def register():
     if request.method == "POST":
 
@@ -796,6 +816,7 @@ def view_products():
     )
 
 @app.route("/search_products", methods=["GET"])
+@limiter.limit("10 per minute") 
 def search_products():
     query = sanitize_input(request.args.get("query"))
     if not query:
