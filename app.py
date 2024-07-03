@@ -421,6 +421,11 @@ def logout():
     # Redirect to the login page or home page after logout
     return redirect(url_for("login"))
 
+# Strong Password complexity 
+def passwordStrength(password):
+    # At least 8 characters long, contains at least one digit, one uppercase letter, one lowercase letter, and one special character
+    pattern = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")
+    return pattern.match(password)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -431,6 +436,10 @@ def register():
         phone_number = sanitize_input(request.form.get("phoneNum"))
         email = sanitize_input(request.form.get("email"), input_type='email')
         role = "user"
+
+        if not passwordStrength(password):
+            flash("Password must be at least 8 characters long, contain at least one digit, one uppercase letter, one lowercase letter, and one special character.", "error")
+            return redirect(url_for("register"))
 
         hashed_password = ph.hash(password)
         print(f"hashed_password: {hashed_password}")
