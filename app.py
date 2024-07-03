@@ -21,6 +21,12 @@ import dns.resolver
 from flask import Flask, request, jsonify
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+import warnings
+warnings.filterwarnings(
+    "ignore",
+    category=UserWarning,
+    message="Using the in-memory storage for tracking rate limits as no storage was explicitly specified."
+)
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Provide a secret key for session management
@@ -40,6 +46,9 @@ limiter = Limiter(
     app=app,
     default_limits=["200 per day", "50 per hour"]
 )
+
+
+
 
 # Redirect rate limit error to its own html
 @app.errorhandler(429)
