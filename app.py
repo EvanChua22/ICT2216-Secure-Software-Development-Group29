@@ -63,15 +63,15 @@ def login_required(f):
     return decorated_function
 
 
-# def otp_required(f):
-#     @wraps(f)
-#     def decorated_function(*args, **kwargs):
-#         if not session.get("logged_in") or not session.get("otp_verified"):
-#             session.clear()  # Clear the session if trying to access without OTP verification
-#             flash("Please log in again.", "error")
-#             return redirect(url_for("login"))
-#         return f(*args, **kwargs)
-#     return decorated_function
+def otp_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get("logged_in") or not session.get("otp_verified"):
+            session.clear()  # Clear the session if trying to access without OTP verification
+            flash("Please log in again.", "error")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route("/")
 def index():
@@ -86,7 +86,7 @@ def index():
 
 # Home Page route
 @app.route("/user_home")
-#@otp_required
+@otp_required
 def user_home():
     if "name" and "user_id" in session and session.get("role") == "user":
         user_id = session["user_id"]
@@ -155,8 +155,8 @@ def login():
                 else:
                     session["role"] = "user"
                     # When doing testing and need to keep logging in, can just comment this and redirect to 'user_home' instead
-                    return redirect(url_for("user_home"))
-                    # return redirect(url_for("sendOTP"))
+                    # return redirect(url_for("user_home"))
+                    return redirect(url_for("sendOTP"))
             except VerifyMismatchError:
                 # Password verification failed
                 flash("Invalid username or password", "error")
@@ -219,8 +219,8 @@ def sendOTP():
     if not user_id or not name:
         flash("User not authenticated", "error")
         return redirect(url_for("login"))
-    if "otp" not in session:
-    # Generate OTP
+    if "otp" not in session or request.args.get("resend") == "true":
+        # Generate OTP
         otp = generate_otp()
 
         # Store OTP in session (or alternatively in a database)
@@ -244,19 +244,20 @@ def sendOTP():
         else:
             flash("Failed to retrieve user email.", "error")
             print(f"OTP has failed to send to this email: {email}" )
-
+    else:
+        flash("OTP already sent. Please check your email.", "info")
     return render_template("sendOTP.html")
 
 @app.route("/verify_otp", methods=["POST"])
 def verify_otp():
     try: 
-        user_otp = request.form.get("otp")
+        user_otp = ''.join([request.form.get(f'otp{i}') for i in range(1, 7)])
         session_otp = session.get("otp")
         otp_timestamp = session.get("otp_timestamp")
 
         if user_otp and session_otp and user_otp == session_otp:
             # Check if OTP is expired
-            if datetime.now(timezone.utc) - otp_timestamp < timedelta(minutes=2):
+            if datetime.now(timezone.utc) - otp_timestamp < timedelta(minutes=1):
                 session.pop("otp", None)
                 session.pop("otp_timestamp", None)
                 session["otp_verified"] = True  # Mark OTP as verified
@@ -477,7 +478,7 @@ def save_image_to_database(image):
 
 
 @app.route("/upload_product", methods=["GET", "POST"])
-#@otp_required
+@otp_required
 def upload_product():
 
     if request.method == "POST":
@@ -711,7 +712,7 @@ def delete():
 
 # Route View all products
 @app.route("/view_products")
-#@otp_required
+@otp_required
 def view_products():
 
     if "user_id" in session:
@@ -837,7 +838,7 @@ def products_reviews(product_id):
 
 
 @app.route("/my_products")
-#@otp_required
+@otp_required
 def my_products():
 
     if "user_id" in session:

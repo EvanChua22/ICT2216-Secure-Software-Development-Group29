@@ -106,8 +106,8 @@
                             </div>
                         </form>
                         <div>
-                            <p>OTP expires in <span id="time">02:00</span> minutes!</p>
-                            <a href="{{url_for('sendOTP')}}" id="resend-link" style="display:none;">Resend code</a>
+                            <p>OTP expires in <span id="time">01:00</span> minutes!</p>
+                            <a href="{{url_for('sendOTP', resend='true')}}" id="resend-link" style="display:none;">Resend code</a>
                         </div>
                     </div>
                 </div>
