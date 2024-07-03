@@ -1,5 +1,5 @@
 import os
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, make_response, redirect, render_template, request, session, url_for
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from matplotlib import use
@@ -15,6 +15,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignat
 from werkzeug.security import generate_password_hash
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+import dns.resolver
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Provide a secret key for session management
@@ -36,7 +37,7 @@ app.config.update(
     SESSION_COOKIE_SECURE=True,   #set this to true when site is using HTTPS #Ensures that the session cookie is only sent over HTTPS
     SESSION_COOKIE_SAMESITE='Lax',
     SESSION_REFRESH_EACH_REQUEST = False,
-    PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour can be changed if needed
 )
 
 # This implements Session Timeout and is set to 1 hour
@@ -57,15 +58,15 @@ def login_required(f):
     return decorated_function
 
 
-# def otp_required(f):
-#     @wraps(f)
-#     def decorated_function(*args, **kwargs):
-#         if not session.get("logged_in") or not session.get("otp_verified"):
-#             session.clear()  # Clear the session if trying to access without OTP verification
-#             flash("Please log in again.", "error")
-#             return redirect(url_for("login"))
-#         return f(*args, **kwargs)
-#     return decorated_function
+def otp_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get("logged_in") or not session.get("otp_verified"):
+            session.clear()  # Clear the session if trying to access without OTP verification
+            flash("Please log in again.", "error")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route("/")
 def index():
@@ -80,7 +81,7 @@ def index():
 
 # Home Page route
 @app.route("/user_home")
-# @otp_required
+@otp_required
 def user_home():
     if "name" and "user_id" in session and session.get("role") == "user":
         user_id = session["user_id"]
@@ -149,8 +150,8 @@ def login():
                 else:
                     session["role"] = "user"
                     # When doing testing and need to keep logging in, can just comment this and redirect to 'user_home' instead
-                    return redirect(url_for("user_home"))
-                    
+                    # return redirect(url_for("user_home"))
+                    return redirect(url_for("sendOTP"))
             except VerifyMismatchError:
                 # Password verification failed
                 flash("Invalid username or password", "error")
@@ -165,7 +166,7 @@ def login():
     return render_template("login.html")
 
 
-# Multi-Factor Authentication Ln 161 - 238
+# Multi-Factor Authentication
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
 
@@ -176,11 +177,30 @@ def send_email(recipient_email, subject, body):
     smtp_username = 'mobsectest123@outlook.com'
     smtp_password = 'Mobilesecpassword111'
 
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
-        server.starttls()
-        server.login(smtp_username, smtp_password)
-        message = f"Subject: {subject}\n\n{body}"
-        server.sendmail(smtp_username, recipient_email, message)
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            message = f"Subject: {subject}\n\n{body}"
+            server.sendmail(smtp_username, recipient_email, message)
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+def emailValidity(email):
+    # Define a regular expression for validating an Email
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    if re.match(email_regex, email) is None:
+        return False
+    
+    # Extract the domain part of the email
+    domain = email.split('@')[1]
+    
+    # Perform DNS lookup for the domain
+    try:
+        dns.resolver.resolve(domain, 'MX')
+        return True
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN, dns.resolver.Timeout):
+        return False
 
 
 @app.route("/sendOTP")
@@ -194,8 +214,8 @@ def sendOTP():
     if not user_id or not name:
         flash("User not authenticated", "error")
         return redirect(url_for("login"))
-    if "otp" not in session:
-    # Generate OTP
+    if "otp" not in session or request.args.get("resend") == "true":
+        # Generate OTP
         otp = generate_otp()
 
         # Store OTP in session (or alternatively in a database)
@@ -219,19 +239,20 @@ def sendOTP():
         else:
             flash("Failed to retrieve user email.", "error")
             print(f"OTP has failed to send to this email: {email}" )
-
+    else:
+        flash("OTP already sent. Please check your email.", "info")
     return render_template("sendOTP.html")
 
 @app.route("/verify_otp", methods=["POST"])
 def verify_otp():
     try: 
-        user_otp = request.form.get("otp")
+        user_otp = ''.join([request.form.get(f'otp{i}') for i in range(1, 7)])
         session_otp = session.get("otp")
         otp_timestamp = session.get("otp_timestamp")
 
         if user_otp and session_otp and user_otp == session_otp:
             # Check if OTP is expired
-            if datetime.now(timezone.utc) - otp_timestamp < timedelta(minutes=2):
+            if datetime.now(timezone.utc) - otp_timestamp < timedelta(minutes=1):
                 session.pop("otp", None)
                 session.pop("otp_timestamp", None)
                 session["otp_verified"] = True  # Mark OTP as verified
@@ -275,7 +296,7 @@ def view_profile():
         flash("User not found", "danger")
         return redirect(url_for("login"))
 
-# Change Password Ln 271 - 299
+# Change Password
 @app.route('/changePass', methods=['POST'])
 def changePass():
     if 'user_id' not in session:
@@ -307,11 +328,16 @@ def changePass():
     return redirect(url_for('view_profile'))
 
 
-# Forgot Password Service Ln 303 - 373
+# Forgot Password Service
 @app.route("/forgotPass", methods=["GET", "POST"])
 def forgotPass():
     if request.method == 'POST':
         email = request.form['email']
+        
+        # Check if email is valid
+        if not emailValidity(email):
+            flash('Invalid email address format.', 'error')
+            return redirect(url_for('forgotPass'))
         
         # Execute raw SQL query using sqlite3
         conn = sqlite3.connect("database.db")
@@ -339,8 +365,10 @@ def forgotPass():
             flash('A password reset link has been sent to your email.', 'info')
             print('A password reset link has been sent to your email.')
         else:
-            flash('No account with that email address exists.', 'warning')
-            print('No account with that email address exists.')
+            # gives generic msg even if email is not associated with any account
+            # without actually sending
+            flash('A password reset link has been sent to your email.', 'info')
+            print('A password reset link has been sent to your email.')
         return redirect(url_for('forgotPass'))
     
     return render_template("forgotPass.html")
@@ -388,6 +416,11 @@ def logout():
     # Redirect to the login page or home page after logout
     return redirect(url_for("login"))
 
+# Strong Password complexity 
+def passwordStrength(password):
+    # At least 8 characters long, contains at least one digit, one uppercase letter, one lowercase letter, and one special character
+    pattern = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")
+    return pattern.match(password)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -398,6 +431,10 @@ def register():
         phone_number = sanitize_input(request.form.get("phoneNum"))
         email = sanitize_input(request.form.get("email"), input_type='email')
         role = "user"
+
+        if not passwordStrength(password):
+            flash("Password must be at least 8 characters long, contain at least one digit, one uppercase letter, one lowercase letter, and one special character.", "error")
+            return redirect(url_for("register"))
 
         hashed_password = ph.hash(password)
         print(f"hashed_password: {hashed_password}")
@@ -434,18 +471,18 @@ def register():
 
 def save_image_to_database(image):
     if image:
-        # Extract filename from the image object
-        filename = secure_filename(image.filename)
-        filename_without_extension = os.path.splitext(filename)[0]
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        image.save(filepath)
-        return filename_without_extension
+        try:
+            image_blob = image.read()
+            return image_blob
+        except Exception as e:
+            print("Error reading image:", e)
+            return None
     else:
         return None
 
 
 @app.route("/upload_product", methods=["GET", "POST"])
-# @otp_required
+@otp_required
 def upload_product():
 
     if request.method == "POST":
@@ -455,6 +492,7 @@ def upload_product():
         else:
             flash("User not logged in. Please log in to upload a product.", "error")
             return redirect(url_for("login"))
+            
         product_name = sanitize_input(request.form["product_name"])
         description = sanitize_input(request.form["description"])
         price = sanitize_input(request.form["price"])
@@ -463,14 +501,23 @@ def upload_product():
         quantity = sanitize_input(request.form["quantity"])
 
         image = request.files["image"]
-        image_url = save_image_to_database(image)
+        image_blob = save_image_to_database(image)
+
+        # Print the values to check if they are correct
+        print(f"User ID: {user_id}")
+        print(f"Product Name: {product_name}")
+        print(f"Description: {description}")
+        print(f"Price: {price}")
+        print(f"Size: {size}")
+        print(f"Condition: {condition}")
+        print(f"Quantity: {quantity}")
 
         # Connect to the database
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
         try:
             cursor.execute(
-                """ INSERT INTO Products (user_id, product_name, description, price, size, condition, image_url, quantity, created_at,
+                """ INSERT INTO Products (user_id, product_name, description, price, size, condition, image_blob, quantity, created_at,
                 verified) VALUES  (? ,?, ?, ?, ?, ?, ?, ?, datetime('now'),0)""",
                 (
                     user_id,
@@ -479,14 +526,14 @@ def upload_product():
                     price,
                     size,
                     condition,
-                    image_url,
+                    image_blob,
                     quantity,
                 ),
             )
             conn.commit()
             conn.close()
             flash("Your product has been successfully uploaded!", "Success")
-            return redirect(url_for("upload_product"))
+            return redirect(url_for("user_home"))
 
         except Exception as e:
             # Handle database errors and display an error message
@@ -500,6 +547,21 @@ def upload_product():
     else:
         return render_template("upload_product.html")
 
+@app.route("/product_image/<int:product_id>")
+def product_image(product_id):
+    # Connect to the database
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT image_blob FROM Products WHERE product_id = ?", (product_id,))
+    image_blob = cursor.fetchone()[0]
+    conn.close()
+
+    # Convert BLOB back to image
+    response = make_response(image_blob)
+    response.headers.set('Content-Type', 'image/jpeg')
+    response.headers.set(
+        'Content-Disposition', 'attachment', filename=f'product_{product_id}.jpg')
+    return response
 
 # Route to form used to add a new user to the database
 # @app.route("/enternew")
@@ -654,7 +716,7 @@ def delete():
 
 # Route View all products
 @app.route("/view_products")
-# @otp_required
+@otp_required
 def view_products():
 
     if "user_id" in session:
@@ -663,7 +725,7 @@ def view_products():
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT product_id, product_name, price, image_url, verified FROM Products"
+        "SELECT product_id, product_name, price, image_blob, verified FROM Products"
     )
     products = cursor.fetchall()
     conn.close()
@@ -675,7 +737,7 @@ def view_products():
             "product_id": product[0],
             "product_name": product[1],
             "price": product[2],
-            "image_url": product[3],
+            "image_blob": product[3],
             "verified": product[4],
         }
         products_list.append(product_dict)
@@ -683,7 +745,6 @@ def view_products():
     return render_template(
         "view_products.html", products_list=products_list, user_id=user_id
     )
-
 
 @app.route("/search_products", methods=["GET"])
 def search_products():
@@ -731,7 +792,7 @@ def product_details(product_id):
             "price": product_details[4],
             "size": product_details[5],
             "condition": product_details[6],
-            "image_url": product_details[7],
+            "image_blob": product_details[7],
             "quantity": product_details[8],
             "created_at": product_details[9],
             "verified": product_details[10],
@@ -781,7 +842,7 @@ def products_reviews(product_id):
 
 
 @app.route("/my_products")
-# @otp_required
+@otp_required
 def my_products():
 
     if "user_id" in session:
@@ -802,7 +863,7 @@ def my_products():
             "product_id": product[0],
             "product_name": product[2],
             "price": product[4],
-            "image_url": product[7],
+            "image_blob": product[7],
         }
         products_list.append(product_dict)
 
@@ -831,7 +892,7 @@ def my_products_details(product_id):
             "price": product_details[4],
             "size": product_details[5],
             "condition": product_details[6],
-            "image_url": product_details[7],
+            "image_blob": product_details[7],
             "quantity": product_details[8],
             "created_at": product_details[9],
             "verified": product_details[10],
@@ -946,8 +1007,8 @@ def delete_product(product_id):
     cursor = conn.cursor()
 
     cursor.execute(
-        "SELECT * FROM Products WHERE product_id = ? AND user_id = ?",
-        (product_id, user_id),
+        "SELECT * FROM Products WHERE product_id = ? ",
+        (product_id,),
     )
     product = cursor.fetchone()
 
@@ -1267,6 +1328,7 @@ def process_payment():
         )
 
         conn.commit()
+        flash("Payment successful!", "success")
         return render_template("success.html")
 
     except Exception as e:
@@ -1286,7 +1348,7 @@ def view_products_admin():
     con.row_factory = sqlite3.Row
 
     cur = con.cursor()
-    cur.execute("SELECT product_id, * FROM Products")
+    cur.execute("SELECT * FROM Products")
 
     rows = cur.fetchall()
     con.close()

@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
-        {% if 'role' in session and session['role'] != 'admin' %}
+        {% if 'role' in session and session['role'] != 'admin' and session['otp_verified']%}
         <a href="{{ url_for('index') }}" class="navbar-brand">Home</a>
         {% endif %}
         <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -20,7 +20,7 @@
                     <a href="{{ url_for('logs') }}" class="nav-link">Logs</a>
                 </li>
                 {% endif %}
-                {% if 'role' in session and session['role'] != 'admin' %}
+                {% if 'role' in session and session['role'] != 'admin' and session['otp_verified']%}
                 <li class="nav-item">
                     <a href="{{ url_for('view_products') }}" class="nav-link">Products</a>
                 </li>
@@ -36,7 +36,7 @@
     </div>
     <div class="container justify-content-end">
         <ul class="navbar-nav ml-auto">
-            {% if 'name' and 'role' in session %}
+            {% if 'name' and 'role' in session and session['otp_verified'] %}
             <li class="nav-item">
                 <span class="nav-link">Welcome, {{ session['name'] }}</span>
             </li>

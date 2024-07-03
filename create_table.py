@@ -28,7 +28,7 @@ CREATE TABLE Products (
     price DECIMAL(10,2),
     size VARCHAR(10),
     condition VARCHAR(20),
-    image_url VARCHAR(255),
+    image_blob BLOB,
     quantity INTEGER,
     created_at DATETIME,
     verified BOOLEAN,

@@ -31,9 +31,10 @@
                             </div>
                             <div class="form-group">
                                 <label for="image">Product Image:</label>
-                                <input class="form-control-file" name="image" type="file" id="image" accept="image/jpeg, image/png" required>
-                                <img id="image-preview" src="#" alt="Image Preview">
+                                <input class="form-control-file" name="image" type="file" id="image" accept="image/*" required>
+                                <img id="image-preview" src="#" alt="Image Preview" style="display: none;">
                             </div>
+
                             <div class="form-group">
                                 <label for="quantity">Quantity:</label>
                                 <input class="form-control" name="quantity" type="number" id="quantity" required placeholder="Quantity">
@@ -45,7 +46,6 @@
             </div>
         </main>
         {% include "footer.html" %}
-        <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     </body>
     
 </html>
