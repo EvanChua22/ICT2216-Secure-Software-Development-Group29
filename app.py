@@ -169,7 +169,7 @@ def login():
             # Does not continue onto validation for locked accounts. 
             return render_template('login.html')
         else:
-            cursor.execute("UPDATE Users SET login_attempts = login_attempts + 1 WHERE name = ?", (name,))
+            cursor.execute("UPDATE Users SET login_attempts = 1 WHERE name = ?", (name,))
             conn.commit()
 
 
