@@ -164,7 +164,7 @@ def login():
         # Checking if account has reached failed login attempts.
         login_attempts = cursor.execute("SELECT login_attempts FROM Users WHERE name = ?", (name,) ).fetchone()
         print(f"Login attempts: {login_attempts}")
-        if ( login_attempts and login_attempts[0] >= 5 ):
+        if ( isinstance(login_attempts,int) and login_attempts[0] >= 5 ):
             flash("Your account has been locked. Contact An Admin To Unlock Your Account")
             # Does not continue onto validation for locked accounts. 
             return render_template('login.html')
