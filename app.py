@@ -168,6 +168,10 @@ def login():
             flash("Your account has been locked. Contact An Admin To Unlock Your Account")
             # Does not continue onto validation for locked accounts. 
             return render_template('login.html')
+        else:
+            cursor.execute("UPDATE Users SET login_attempts = login_attempts + 1 WHERE name = ?", (name,))
+            conn.commit()
+
 
 
         # Retrieve the user's hashed password from the database
