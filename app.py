@@ -153,7 +153,7 @@ def unlock():
 
 # TODO Why allow 'GET' For login? Remove if not necessary. 
 @app.route("/login", methods=["GET", "POST"])
-@limiter.limit("5 per minute")  # Limit login attempts to 5 per minute
+@limiter.limit("8 per minute")  # Limit login attempts to 8 per minute
 def login():
     if request.method == "POST":
         # Get the user input values from the input field
@@ -286,7 +286,7 @@ def emailValidity(email):
 
 
 @app.route("/sendOTP")
-@limiter.limit("5 per minute") 
+@limiter.limit("8 per minute") 
 def sendOTP():
     if not session.get("logged_in") or session.get("otp_verified"):
         return redirect(url_for("login"))
@@ -413,7 +413,7 @@ def changePass():
 
 # Forgot Password Service
 @app.route("/forgotPass", methods=["GET", "POST"])
-@limiter.limit("3 per minute")
+@limiter.limit("8 per minute")
 def forgotPass():
     if request.method == 'POST':
         email = request.form['email']
@@ -507,7 +507,7 @@ def passwordStrength(password):
     return pattern.match(password)
 
 @app.route("/register", methods=["GET", "POST"])
-@limiter.limit("3 per minute")
+@limiter.limit("10 per minute")
 def register():
     if request.method == "POST":
 
@@ -832,7 +832,7 @@ def view_products():
     )
 
 @app.route("/search_products", methods=["GET"])
-@limiter.limit("10 per minute") 
+@limiter.limit("20 per minute") 
 def search_products():
     query = sanitize_input(request.args.get("query"))
     if not query:
