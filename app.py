@@ -130,7 +130,8 @@ def sanitize_input(input_data, input_type="text"):
         return re.sub(r"[^\w\s@.-]", "", input_data)
     elif input_type == "password":
         # Passwords should be hashed and salted, but if you want to allow special characters, sanitize differently
-        return re.sub(r"[^\w\s@#$%^&*()_+=-]", "", input_data)
+        # return re.sub(r"[^\w\s@#$%^&*()_+=-]", "", input_data)
+        return input_data
     elif input_type == "phone":
         return re.sub(r"[^\d]", "", input_data)
     return input_data
@@ -194,6 +195,7 @@ def login():
             user_id = result[0]
             stored_password = result[2]
             # role = result[5]
+            print(f"Stored password: {stored_password}")
 
             try:
                 # Verify the password using Argon2id
@@ -504,7 +506,10 @@ def logout():
 def passwordStrength(password):
     # At least 8 characters long, contains at least one digit, one uppercase letter, one lowercase letter, and one special character
     pattern = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")
-    return pattern.match(password)
+    # return pattern.match(password)
+    match = pattern.match(password)
+    print(f"Password: {password}, Match: {match}")
+    return match
 
 @app.route("/register", methods=["GET", "POST"])
 @limiter.limit("10 per minute")
@@ -512,7 +517,7 @@ def register():
     if request.method == "POST":
 
         name = sanitize_input(request.form.get("name"))
-        password = sanitize_input(request.form.get("password"))
+        password = sanitize_input(request.form.get("password"), input_type='password')
         phone_number = sanitize_input(request.form.get("phoneNum"))
         email = sanitize_input(request.form.get("email"), input_type='email')
         role = "user"
