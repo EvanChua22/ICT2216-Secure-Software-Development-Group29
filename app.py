@@ -168,7 +168,7 @@ def login():
             flash("Your account has been locked. Contact An Admin To Unlock Your Account")
             # Does not continue onto validation for locked accounts. 
             return render_template('login.html')
-        elif (not isinstance(login_attempts), int):
+        elif (not isinstance(login_attempts,int) ):
             cursor.execute("UPDATE Users SET login_attempts = 1 WHERE name = ?", (name,))
             conn.commit()
         else:
