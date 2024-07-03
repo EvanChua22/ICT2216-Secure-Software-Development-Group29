@@ -159,7 +159,7 @@ def login():
     if request.method == "POST":
         # Get the user input values from the input field
         name = sanitize_input(request.form.get("name"))
-        password = sanitize_input(request.form.get("password"))
+        password = sanitize_input(request.form.get("password"), input_type='password')
        
         # Connect to the database
         conn = sqlite3.connect("database.db")
