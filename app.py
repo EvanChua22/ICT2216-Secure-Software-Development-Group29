@@ -3,7 +3,6 @@ from flask import Flask, flash, redirect, render_template, request, session, url
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from matplotlib import use
-# from numpy import product # what is this for ah?
 from werkzeug.utils import secure_filename
 from functools import wraps
 from werkzeug.security import check_password_hash
@@ -32,12 +31,9 @@ ph = PasswordHasher()
 
 # Secure Session Cookies
 app.config.update(
-    # Javascript cant be used to access cookie if below is true.
-    SESSION_COOKIE_HTTPONLY=True,
-    
-    #set this to true when site is using HTTPS
-    #Ensures that the session cookie is only sent over HTTPS
-    SESSION_COOKIE_SECURE=True,  
+   
+    SESSION_COOKIE_HTTPONLY=True, # Cookie can only be modified by http, not javascript. prevents XSS attacks.
+    SESSION_COOKIE_SECURE=True,   #set this to true when site is using HTTPS #Ensures that the session cookie is only sent over HTTPS
     SESSION_COOKIE_SAMESITE='Lax',
     SESSION_REFRESH_EACH_REQUEST = False,
     PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour
@@ -47,7 +43,6 @@ app.config.update(
 @app.before_request
 def make_session_permanent():
     session.permanent = True
-    #TODO Set to 1 minute for testing. Change back to 1hr. 
     app.permanent_session_lifetime = timedelta(hours=1)
     session.modified = True
 
