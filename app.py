@@ -16,6 +16,8 @@ from werkzeug.security import generate_password_hash
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 import dns.resolver
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 #imports for rate limiting 
 from flask import Flask, request, jsonify
@@ -255,20 +257,46 @@ def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
 
 
+# def send_email(recipient_email, subject, body):
+#     smtp_server = 'smtp.outlook.com'
+#     smtp_port = 587
+#     smtp_username = 'mobsectest123@outlook.com'
+#     smtp_password = 'Mobilesecpassword111'
+
+#     try:
+#         with smtplib.SMTP(smtp_server, smtp_port) as server:
+#             server.starttls()
+#             server.login(smtp_username, smtp_password)
+#             message = f"Subject: {subject}\n\n{body}"
+#             server.sendmail(smtp_username, recipient_email, message)
+#     except Exception as e:
+#         print(f"Error sending email: {e}")
+
+
 def send_email(recipient_email, subject, body):
     smtp_server = 'smtp.outlook.com'
     smtp_port = 587
     smtp_username = 'mobsectest123@outlook.com'
     smtp_password = 'Mobilesecpassword111'
 
+    # Create the email message
+    msg = MIMEMultipart()
+    msg['From'] = smtp_username
+    msg['To'] = recipient_email
+    msg['Subject'] = subject
+
+    # Attach the plain text body
+    msg.attach(MIMEText(body, 'plain'))
+
     try:
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
             server.login(smtp_username, smtp_password)
-            message = f"Subject: {subject}\n\n{body}"
-            server.sendmail(smtp_username, recipient_email, message)
+            server.sendmail(smtp_username, recipient_email, msg.as_string())
+        print("Email sent successfully!")
     except Exception as e:
         print(f"Error sending email: {e}")
+
 
 def emailValidity(email):
     # Define a regular expression for validating an Email
