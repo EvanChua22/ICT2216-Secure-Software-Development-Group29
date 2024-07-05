@@ -333,7 +333,7 @@ def sendOTP():
         if result:
             email = result[0]
             # Send OTP via email
-            send_email(email, "Your OTP for Login", f"We received a request to reset your password. Please use the following One-Time Password: {otp} This OTP is valid for the next 1 minute. ")
+            send_email(email, "Your OTP for Login", f"We've received a request to login to your account. Please use the following One-Time Password: {otp} This OTP is valid for the next 1 minute. ")
             # might need to check spam folder 
             flash("OTP has been sent to your email.", "success")
             print(f"OTP has been sent to this email: {email}" )
@@ -484,8 +484,8 @@ def resetPass(token):
         return redirect(url_for('forgotPass'))
 
     if request.method == 'POST':
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
+        password = sanitize_input(request.form.get('password'), input_type='password')
+        confirm_password = sanitize_input(request.form.get('confirm_password'), input_type='password')
 
         if password != confirm_password:
             flash('Passwords do not match. Please try again.', 'warning')
@@ -497,7 +497,7 @@ def resetPass(token):
         user_row = cursor.fetchone()
 
         if user_row:
-            hashed_password = generate_password_hash(password)
+            hashed_password = ph.hash(password)
             cursor.execute("UPDATE Users SET password = ? WHERE email = ?", (hashed_password, email))
             conn.commit()
             flash('Your password has been updated!', 'success')
