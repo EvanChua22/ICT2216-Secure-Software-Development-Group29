@@ -16,9 +16,6 @@ from werkzeug.security import generate_password_hash
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 import dns.resolver
-import requests
-
-from flask_mail import Mail, Message
 
 #imports for rate limiting 
 from flask import Flask, request, jsonify
@@ -336,7 +333,7 @@ def sendOTP():
         if result:
             email = result[0]
             # Send OTP via email
-            send_email(email, "Your OTP for Password Reset", f"We received a request to reset your password. Please use the following One-Time Password: {otp} This OTP is valid for the next 1 minute. ")
+            send_email(email, "Your OTP for Login", f"We received a request to reset your password. Please use the following One-Time Password: {otp} This OTP is valid for the next 1 minute. ")
             # might need to check spam folder 
             flash("OTP has been sent to your email.", "success")
             print(f"OTP has been sent to this email: {email}" )
