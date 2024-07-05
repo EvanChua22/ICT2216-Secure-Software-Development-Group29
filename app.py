@@ -557,10 +557,14 @@ def register():
             flash("Your account has been successfully created!", "success")
             return redirect(url_for("login"))
 
-        except sqlite3.IntegrityError:
+        except sqlite3.IntegrityError as e:
             conn.rollback()
-            flash("An account with this email already exists. Please try a different email.", "error")
-            print("IntegrityError: An account with this email already exists.")
+            if "UNIQUE constraint failed: Users.email" in str(e):
+                flash("An account with this email already exists. Please try a different email.", "error")
+                print("IntegrityError: An account with this email already exists.")
+            else:
+                flash("An error has occurred during registration. Please try again later.", "error")
+                print("Error:", e)
         
         except Exception as e:
             conn.rollback()
