@@ -61,13 +61,6 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
-@app.route('/mail')
-def send_email():
-    mail = Mail(app)
-    msg = Message("This email shud work!",
-                  recipients = ['2202084@sit.singaporetech.edu.sg'], 
-                  body = 'evan sucks')
-    mail.send(msg)
 
 
 
