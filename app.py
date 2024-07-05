@@ -336,7 +336,7 @@ def sendOTP():
         if result:
             email = result[0]
             # Send OTP via email
-            send_email(email, "Your OTP Code", f"Your OTP code is: {otp}")
+            send_email(email, "Your OTP for Password Reset", f"We received a request to reset your password. Please use the following One-Time Password: {otp} This OTP is valid for the next 1 minute. ")
             # might need to check spam folder 
             flash("OTP has been sent to your email.", "success")
             print(f"OTP has been sent to this email: {email}" )
