@@ -16,6 +16,7 @@ from werkzeug.security import generate_password_hash
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 import dns.resolver
+import requests
 
 #imports for rate limiting 
 from flask import Flask, request, jsonify
@@ -255,29 +256,49 @@ def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
 
 
+# def send_email(recipient_email, subject, body):
+#     # smtp_server = 'smtp.outlook.com'
+#     # smtp_port = 587
+#     # smtp_username = 'mobsectest123@outlook.com'
+#     # smtp_password = 'Mobilesecpassword111'
+#     smtp_server = 'smtp.gmail.com'
+#     smtp_port = 587
+#     smtp_username = 'mobsectest123@gmail.com'
+#     smtp_password = 'iybi apmj avlv bnsu'
+
+#     try:
+#         with smtplib.SMTP(smtp_server, smtp_port) as server:
+#             server.starttls()
+#             server.login(smtp_username, smtp_password)
+#             message = f"Subject: {subject}\n\n{body}"
+#             server.sendmail(smtp_username, recipient_email, message)
+
+#     except smtplib.SMTPAuthenticationError as auth_error:
+#         print(f"SMTP Authentication Error: {auth_error}")
+#     except Exception as e:
+#         print(f"Error sending email: {e}")
+
 def send_email(recipient_email, subject, body):
-    # smtp_server = 'smtp.outlook.com'
-    # smtp_port = 587
-    # smtp_username = 'mobsectest123@outlook.com'
-    # smtp_password = 'Mobilesecpassword111'
-    smtp_server = 'smtp.gmail.com'
-    smtp_port = 587
-    smtp_username = 'mobsectest123@gmail.com'
-    smtp_password = 'iybi apmj avlv bnsu'
+    api_key = '99974477b10d255bf33229eab8cdd5bd-623e10c8-46473b97'  # Replace with your Mailgun API key
+    domain = 'sandbox9c7b2dfe2d8a4dc99ca11ebf20a1ad6b.mailgun.org'    # Replace with your Mailgun domain
+    sender_email = f'mailgun@{domain}'
 
-    try:
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()
-            server.login(smtp_username, smtp_password)
-            message = f"Subject: {subject}\n\n{body}"
-            server.sendmail(smtp_username, recipient_email, message)
+    url = f"https://api.mailgun.net/v3/{domain}/messages"
+    data = {
+        "from": sender_email,
+        "to": recipient_email,
+        "subject": subject,
+        "text": body
+    }
 
-    except smtplib.SMTPAuthenticationError as auth_error:
-        print(f"SMTP Authentication Error: {auth_error}")
-    except Exception as e:
-        print(f"Error sending email: {e}")
+    response = requests.post(url, auth=("api", api_key), data=data)
 
+    if response.status_code == 200:
+        print("Email sent successfully")
+    else:
+        print(f"Failed to send email: {response.status_code} {response.text}")
 
+    
 
 def emailValidity(email):
     # Define a regular expression for validating an Email
