@@ -14,7 +14,7 @@
                 }
             }
 
-            function startTimer(duration, display, resendLink) {
+            function startTimer(duration, display, resendLink, verifyButton) {
                 var timer = duration, minutes, seconds;
                 var interval = setInterval(function () {
                     minutes = parseInt(timer / 60, 10);
@@ -30,6 +30,7 @@
                         clearInterval(interval);
                         resendLink.style.display = "inline";
                         localStorage.removeItem("remainingTime");
+                        verifyButton.disabled = true;  // Disable the button when the timer reaches 0
                     }
                 }, 1000);
             }
@@ -40,8 +41,9 @@
                 var timeLeft = storedTime ? parseInt(storedTime) : totalTime;
                 var display = document.querySelector('#time');
                 var resendLink = document.querySelector('#resend-link');
+                var verifyButton = document.querySelector('#verify-button');
                 resendLink.style.display = "none";
-                startTimer(timeLeft, display, resendLink);
+                startTimer(timeLeft, display, resendLink, verifyButton);
 
                 // Setup event listeners for OTP input boxes
                 var inputs = document.querySelectorAll('.otp-input');
@@ -102,7 +104,7 @@
                                 <!-- <a href="{{ url_for('sendOTP') }}">Resend code</a> -->
                             </div>
                             <div class="d-flex justify-content-center mt-3">
-                                <button type="submit" class="btn btn-primary" >Verify OTP</button>
+                                <button type="submit" class="btn btn-primary" id="verify-button">Verify OTP</button>
                             </div>
                         </form>
                         <div>
@@ -115,5 +117,4 @@
         </main>
         {% include "footer.html" %}
     </body>
-    
 </html>
