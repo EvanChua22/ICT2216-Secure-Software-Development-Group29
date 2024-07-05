@@ -1299,3 +1299,4 @@ ssd/Lib/site-packages/setuptools-58.1.0.dist-info/WHEEL
 ssd/Scripts/python.exe
 ssd/Scripts/pythonw.exe
 static/productImg/figure1.png
+venv/*

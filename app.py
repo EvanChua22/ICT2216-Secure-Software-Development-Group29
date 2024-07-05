@@ -17,6 +17,8 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 import dns.resolver
 
+from flask_mail import Mail, Message
+
 #imports for rate limiting 
 from flask import Flask, request, jsonify
 from flask_limiter import Limiter
@@ -35,6 +37,17 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 serializer = URLSafeTimedSerializer(app.secret_key)
 
+# TODO Testing flask-mail
+app.config['MAIL_SERVER'] = 'smtp-mail.outlook.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = 'mobsectest123@outlook.com'
+app.config['MAIL_PASSWORD'] = 'Mobilesecpassword111'
+app.config['MAIL_DEFAULT_SENDER'] = 'mobsectest123@outlook.com'
+#END OF TEST
+
+
 DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, 'database.db'))
 
 # Initialize the Argon2id password hasher
@@ -46,6 +59,14 @@ limiter = Limiter(
     app=app,
     default_limits=["200 per day", "50 per hour"]
 )
+
+@app.route('/mail')
+def send_email():
+    mail = Mail(app)
+    msg = Message("This email shud work!",
+                  recipients = ['2202095@sit.singaporetech.edu.sg'], 
+                  body = 'evan sucks')
+    mail.send(msg)
 
 
 
