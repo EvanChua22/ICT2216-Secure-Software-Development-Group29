@@ -271,6 +271,9 @@ def send_email(recipient_email, subject, body):
             server.login(smtp_username, smtp_password)
             message = f"Subject: {subject}\n\n{body}"
             server.sendmail(smtp_username, recipient_email, message)
+            
+    except smtplib.SMTPAuthenticationError as auth_error:
+        print(f"SMTP Authentication Error: {auth_error}")
     except Exception as e:
         print(f"Error sending email: {e}")
 
