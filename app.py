@@ -256,9 +256,13 @@ def generate_otp():
 
 
 def send_email(recipient_email, subject, body):
-    smtp_server = 'smtp.outlook.com'
+    # smtp_server = 'smtp.outlook.com'
+    # smtp_port = 587
+    # smtp_username = 'mobsectest123@outlook.com'
+    # smtp_password = 'Mobilesecpassword111'
+    smtp_server = 'smtp.gmail.com'
     smtp_port = 587
-    smtp_username = 'mobsectest123@outlook.com'
+    smtp_username = 'mobsectest123@gmail.com'
     smtp_password = 'Mobilesecpassword111'
 
     try:
