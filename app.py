@@ -65,7 +65,7 @@ limiter = Limiter(
 def send_email():
     mail = Mail(app)
     msg = Message("This email shud work!",
-                  recipients = ['2202095@sit.singaporetech.edu.sg'], 
+                  recipients = ['2202084@sit.singaporetech.edu.sg'], 
                   body = 'evan sucks')
     mail.send(msg)
 
