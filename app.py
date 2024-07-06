@@ -197,13 +197,16 @@ def login():
         
         # Checking if account has reached failed login attempts.
         login_attempts = cursor.execute("SELECT login_attempts FROM Users WHERE name = ?", (name,) ).fetchone()
+        
         if ( isinstance(login_attempts,int) and login_attempts[0] >= 5 ):
             flash("Your account has been locked. Contact An Admin To Unlock Your Account")
             # Does not continue onto validation for locked accounts. 
             return render_template('login.html')
         elif (not isinstance(login_attempts,int) ):
-            cursor.execute("UPDATE Users SET login_attempts = 1 WHERE name = ?", (name,))
-            conn.commit()
+            try:
+                cursor.execute("UPDATE Users SET login_attempts = 1 WHERE name = ?", (name,))
+            except:
+                print("works")
        
             
 
@@ -257,7 +260,7 @@ def login():
                 # Increase Failed Login in by 1
                 try:
                     cursor.execute("UPDATE Users SET login_attempts = login_attempts + 1 WHERE name = ?", (name,))
-                    conn.commit()
+                    
                 except:
                     print(result)
 
@@ -266,6 +269,7 @@ def login():
             flash("Invalid username or password", "error")
 
         # Close the connection to the database
+        conn.commit()
         conn.close()
         create_log(event_type="Login", user_id=name, details=name + " logged in")
         return redirect(url_for("login"))
