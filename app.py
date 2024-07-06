@@ -189,7 +189,6 @@ def login():
         
         # Checking if account has reached failed login attempts.
         login_attempts = cursor.execute("SELECT login_attempts FROM Users WHERE name = ?", (name,) ).fetchone()
-        print(f"Login attempts: {login_attempts}")
         if ( isinstance(login_attempts,int) and login_attempts[0] >= 5 ):
             flash("Your account has been locked. Contact An Admin To Unlock Your Account")
             # Does not continue onto validation for locked accounts. 
@@ -197,8 +196,7 @@ def login():
         elif (not isinstance(login_attempts,int) ):
             cursor.execute("UPDATE Users SET login_attempts = 1 WHERE name = ?", (name,))
             conn.commit()
-        else:
-            print("This is an allowed login")
+       
             
 
         # Retrieve the user's hashed password from the database
@@ -209,7 +207,6 @@ def login():
             user_id = result[0]
             stored_password = result[2]
             # role = result[5]
-            print(f"Stored password: {stored_password}")
 
             try:
                 # Verify the password using Argon2id
@@ -231,7 +228,7 @@ def login():
                     conn.commit()
                 except:
                     print(result)
-                    print("Trying to reset login attemps for user")
+                   
 
                 if name == "Admin2":
                     session["role"] = "admin"
@@ -240,7 +237,11 @@ def login():
                     session["role"] = "user"
                     # When doing testing and need to keep logging in, can just comment this and redirect to 'user_home' instead
                     # return redirect(url_for("user_home"))
-                    return redirect(url_for("sendOTP"))
+                    if(cursor.execute("SELECT is_verified FROM Users WHERE name = ?", (name,)).fetchone()[0]  == 0 ):
+                        flash("Your account is still not verified. You can only login after verifying your Email. \n Check Your Inbox, As Well As Your Spam Folder.")
+                        # return redirect(url_for("verifyAccount"))
+                    else:
+                        return redirect(url_for("sendOTP"))
             except VerifyMismatchError:
                 # Password verification failed
                 flash("Invalid username or password", "error")
@@ -251,7 +252,6 @@ def login():
                     conn.commit()
                 except:
                     print(result)
-                    print("Trying to increase login attemps for user")
 
 
         else:
@@ -263,7 +263,6 @@ def login():
         return redirect(url_for("login"))
 
     return render_template("login.html")
-
 
 # Multi-Factor Authentication
 def generate_otp():
@@ -340,10 +339,8 @@ def sendOTP():
             send_email(email, "Your OTP for Login", f"We've received a request to login to your account. Please use the following One-Time Password: {otp} This OTP is valid for the next 1 minute. ")
             # might need to check spam folder 
             flash("OTP has been sent to your email.", "success")
-            print(f"OTP has been sent to this email: {email}" )
         else:
             flash("Failed to retrieve user email.", "error")
-            print(f"OTP has failed to send to this email: {email}" )
     else:
         flash("OTP already sent. Please check your email.", "info")
     return render_template("sendOTP.html")
@@ -469,12 +466,10 @@ def forgotPass():
                         '''
             send_email(user['email'], subject, body)
             flash('A password reset link has been sent to your email.', 'info')
-            print('A password reset link has been sent to your email.')
         else:
             # gives generic msg even if email is not associated with any account
             # without actually sending
             flash('A password reset link has been sent to your email.', 'info')
-            print('A password reset link has been sent to your email.')
         return redirect(url_for('forgotPass'))
     
     return render_template("forgotPass.html")
@@ -526,7 +521,7 @@ def logout():
 # Strong Password complexity 
 def passwordStrength(password):
     # At least 8 characters long, contains at least one digit, one uppercase letter, one lowercase letter, and one special character
-    pattern = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")
+    pattern = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,128}$")
     # return pattern.match(password)
     match = pattern.match(password)
     print(f"Password: {password}, Match: {match}")
@@ -548,17 +543,27 @@ def register():
             return redirect(url_for("register"))
 
         hashed_password = ph.hash(password)
-        print(f"hashed_password: {hashed_password}")
 
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
         try:
             cursor.execute(
-                """INSERT INTO Users (name, password, phoneNum, email, role, created_at) 
-                   VALUES (?, ?, ?, ?, ?, datetime('now'))""",
+                """INSERT INTO Users (name, password, phoneNum, email, role, created_at,login_attempts, is_verified) 
+                   VALUES (?, ?, ?, ?, ?, datetime('now'), 0 , 0)""",
                 (name, hashed_password, phone_number, email, role)
             )
             conn.commit()
+
+            # Send a account confirmation email
+            token = serializer.dumps(email,salt='test')
+            # token = serializer.dumps(email, salt='password-reset-salt')
+            verification_url = url_for('verifyAccount', token=token, _external=True)
+            subject = 'Complete Your Registration'
+            body = f'''You're Almost There! \n Click On The Link To Complete Your Account Creation.\n
+                        {verification_url}
+                        If You Did Not Make This Request, Simply Ignore This Email and No Changes Will Be Made.
+                        '''
+            send_email(email, subject, body)
             flash("Your account has been successfully created!", "success")
             return redirect(url_for("login"))
 
@@ -583,6 +588,34 @@ def register():
     else:
         return render_template("register.html")
 
+
+@app.route("/verifyAccount/", methods=["GET","POST"])
+def verifyAccount():
+    token = request.args.get('token')
+    try:
+        email = serializer.loads(token, salt='test',max_age=86400)
+    except Exception as e:
+        print(e)
+    
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    try: 
+        cursor.execute(
+                    "UPDATE Users SET is_verified = 1 WHERE  email = ?",
+                    (email,)
+                )
+        conn.commit()
+    except:
+        print("dB Transaction failed. User account still unverified.")
+    return redirect(url_for('login'))
+#HERE
+
+# try:
+#         email = serializer.loads(token, salt='password-reset-salt', max_age=3600)  # Token is valid for 1 hour
+# except (SignatureExpired, BadTimeSignature):
+#         flash('The reset link is invalid or has expired.', 'danger')
+#         return redirect(url_for('forgotPass'))
+#     serializer.load(``)
 
 def save_image_to_database(image):
     if image:
@@ -940,7 +973,6 @@ def products_reviews(product_id):
         (product_id,),
     )
     reviews = cursor.fetchall()
-    print(reviews)
     review_list = [
         {
             "review_id": row[0],
@@ -1039,7 +1071,6 @@ def my_products_reviews(product_id):
         (product_id,),
     )
     reviews = cursor.fetchall()
-    print(reviews)
     review_list = [
         {
             "review_id": row[0],
@@ -1503,7 +1534,6 @@ if __name__ == "__main__":
     with app.app_context():
         try:
             app.config['SESSION_SQLALCHEMY'].create_all()  # Create the sessions table
-            print(f"Database created at")
         except Exception as e:
             print(f"Error creating database: {e}")
     Session(app)
