@@ -50,15 +50,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, 'database.db'))
 
 # Initialize the Argon2id password hasher
-ph = PasswordHasher()
+# ph = PasswordHasher()
 
-# ph = PasswordHasher(
-#     time_cost=2,  # Number of iterations (default is 2)
-#     memory_cost=102400,  # Memory usage in KiB (default is 102400, 100 MiB)
-#     parallelism=8,  # Number of parallel threads (default is 8)
-#     hash_len=32,  # Length of the hash (default is 16 bytes)
-#     salt_len=16  # Length of the random salt (default is 16 bytes)
-# )
+ph = PasswordHasher(
+    time_cost=5,  # Number of iterations (default is 2)
+    memory_cost=7168,  # Memory usage in KiB (default is 102400, 100 MiB)
+    parallelism=1,  # Number of parallel threads (default is 8)
+    hash_len=32,  # Length of the hash (default is 16 bytes)
+    salt_len=16  # Length of the random salt (default is 16 bytes)
+)
 
 # Initialize the Limiter
 limiter = Limiter(
@@ -555,6 +555,7 @@ def register():
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
         try:
+            print("success")
             cursor.execute(
                 """INSERT INTO Users (name, password, phoneNum, email, role, created_at,login_attempts, is_verified) 
                    VALUES (?, ?, ?, ?, ?, datetime('now'), 0 , 0)""",
@@ -573,6 +574,7 @@ def register():
                         '''
             send_email(email, subject, body)
             flash("Your account has been successfully created!", "success")
+            print("success")
             return redirect(url_for("login"))
 
         except sqlite3.IntegrityError as e:
@@ -615,6 +617,7 @@ def verifyAccount():
         conn.commit()
     except:
         print("dB Transaction failed. User account still unverified.")
+    flash("Your account has been verified successfully! Please Login.")
     return redirect(url_for('login'))
 #HERE
 
