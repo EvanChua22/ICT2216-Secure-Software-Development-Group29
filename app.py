@@ -16,6 +16,10 @@ from werkzeug.security import generate_password_hash
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 import dns.resolver
+from flask_caching import Cache
+from flask_caching.backends import FileSystemCache
+from flask_session import Session
+from flask_sqlalchemy import SQLAlchemy
 
 #imports for rate limiting 
 from flask import Flask, request, jsonify
@@ -29,21 +33,18 @@ warnings.filterwarnings(
 )
 
 app = Flask(__name__)
+# TODO Need to hide this secret_key also. 
 app.secret_key = "your_secret_key"  # Provide a secret key for session management
 UPLOAD_FOLDER = "static/productImg"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 serializer = URLSafeTimedSerializer(app.secret_key)
 
-# TODO Testing flask-mail
-app.config['MAIL_SERVER'] = 'smtp-mail.outlook.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-app.config['MAIL_USERNAME'] = 'mobsectest123@outlook.com'
-app.config['MAIL_PASSWORD'] = 'Mobilesecpassword111'
-app.config['MAIL_DEFAULT_SENDER'] = 'mobsectest123@outlook.com'
-#END OF TEST
+# Configuring dB for Session Management.
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sessions.db'  # You can use any other database URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+
 
 
 DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, 'database.db'))
@@ -69,19 +70,22 @@ def ratelimit_handler(e):
 
 # Secure Session Cookies
 app.config.update(
-   
     SESSION_COOKIE_HTTPONLY=True, # Cookie can only be modified by http, not javascript. prevents XSS attacks.
     SESSION_COOKIE_SECURE=True,   #set this to true when site is using HTTPS #Ensures that the session cookie is only sent over HTTPS
     SESSION_COOKIE_SAMESITE='Lax',
     SESSION_REFRESH_EACH_REQUEST = False,
-    PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour can be changed if needed
+    SESSION_TYPE = 'sqlalchemy',
+    SESSION_SQLALCHEMY = SQLAlchemy(app),
+    SESSION_PERMANENT = True, 
+    PERMANENT_SESSION_LIFETIME=timedelta(minutes=15)  #Set session to 1 hour can be changed if needed
 )
+
 
 # This implements Session Timeout and is set to 1 hour
 @app.before_request
 def make_session_permanent():
     session.permanent = True
-    app.permanent_session_lifetime = timedelta(hours=1)
+    app.permanent_session_lifetime = timedelta(minutes=15)
     session.modified = True
 
 
@@ -164,8 +168,8 @@ def unlock():
 
     return redirect(request.referrer)
 
-# TODO Why allow 'GET' For login? Remove if not necessary. 
-@app.route("/login", methods=["GET", "POST"])
+# Only allow POST for login, else credentials will be visible in URL.
+@app.route("/login", methods=["POST"])
 @limiter.limit("8 per minute")  # Limit login attempts to 8 per minute
 def login():
     if request.method == "POST":
@@ -197,8 +201,6 @@ def login():
             print("This is an allowed login")
             
 
-
-
         # Retrieve the user's hashed password from the database
         cursor.execute("SELECT * FROM Users WHERE name = ?", (name,))
         result = cursor.fetchone()
@@ -221,6 +223,7 @@ def login():
                 session["name"] = name
                 # session["role"] = role
                 session["otp_verified"] = False
+             
 
                 # Reset the Login_attempts counter
                 try:
@@ -270,6 +273,7 @@ def generate_otp():
 def send_email(recipient_email, subject, body):
     smtp_server = 'smtp.outlook.com'
     smtp_port = 587
+    # TODO Need to find a way to hide. 
     smtp_username = 'mobsectest123@outlook.com'
     smtp_password = 'Mobilesecpassword111'
 
@@ -515,6 +519,7 @@ def resetPass(token):
 def logout():
     # Clear the user's session
     session.clear()
+    
     # Redirect to the login page or home page after logout
     return redirect(url_for("login"))
 
@@ -1495,4 +1500,13 @@ def logs():
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        try:
+            app.config['SESSION_SQLALCHEMY'].create_all()  # Create the sessions table
+            print(f"Database created at")
+        except Exception as e:
+            print(f"Error creating database: {e}")
+    Session(app)
     app.run(debug=True)
+
+    # app.run(debug=True)
