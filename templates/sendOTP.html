@@ -37,6 +37,7 @@
     
             window.onload = function () {
                 var storedTime = localStorage.getItem("remainingTime");
+                // localStorage.removeItem("remainingTime");
                 var totalTime = 60 * 1;
                 var timeLeft = storedTime ? parseInt(storedTime) : totalTime;
                 var display = document.querySelector('#time');

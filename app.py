@@ -50,7 +50,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, 'database.db'))
 
 # Initialize the Argon2id password hasher
-ph = PasswordHasher()
+# ph = PasswordHasher()
+
+ph = PasswordHasher(
+    time_cost=5,  # Number of iterations (default is 2)
+    memory_cost=7168,  # Memory usage in KiB (default is 102400, 100 MiB)
+    parallelism=1,  # Number of parallel threads (default is 8)
+    hash_len=32,  # Length of the hash (default is 16 bytes)
+    salt_len=16  # Length of the random salt (default is 16 bytes)
+)
 
 # Initialize the Limiter
 limiter = Limiter(
@@ -189,13 +197,16 @@ def login():
         
         # Checking if account has reached failed login attempts.
         login_attempts = cursor.execute("SELECT login_attempts FROM Users WHERE name = ?", (name,) ).fetchone()
+        
         if ( isinstance(login_attempts,int) and login_attempts[0] >= 5 ):
             flash("Your account has been locked. Contact An Admin To Unlock Your Account")
             # Does not continue onto validation for locked accounts. 
             return render_template('login.html')
         elif (not isinstance(login_attempts,int) ):
-            cursor.execute("UPDATE Users SET login_attempts = 1 WHERE name = ?", (name,))
-            conn.commit()
+            try:
+                cursor.execute("UPDATE Users SET login_attempts = 1 WHERE name = ?", (name,))
+            except:
+                print("works")
        
             
 
@@ -249,7 +260,7 @@ def login():
                 # Increase Failed Login in by 1
                 try:
                     cursor.execute("UPDATE Users SET login_attempts = login_attempts + 1 WHERE name = ?", (name,))
-                    conn.commit()
+                    
                 except:
                     print(result)
 
@@ -258,6 +269,7 @@ def login():
             flash("Invalid username or password", "error")
 
         # Close the connection to the database
+        conn.commit()
         conn.close()
         create_log(event_type="Login", user_id=name, details=name + " logged in")
         return redirect(url_for("login"))
@@ -547,6 +559,7 @@ def register():
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
         try:
+            print("success")
             cursor.execute(
                 """INSERT INTO Users (name, password, phoneNum, email, role, created_at,login_attempts, is_verified) 
                    VALUES (?, ?, ?, ?, ?, datetime('now'), 0 , 0)""",
@@ -565,6 +578,7 @@ def register():
                         '''
             send_email(email, subject, body)
             flash("Your account has been successfully created!", "success")
+            print("success")
             return redirect(url_for("login"))
 
         except sqlite3.IntegrityError as e:
@@ -607,6 +621,7 @@ def verifyAccount():
         conn.commit()
     except:
         print("dB Transaction failed. User account still unverified.")
+    flash("Your account has been verified successfully! Please Login.")
     return redirect(url_for('login'))
 #HERE
 
