@@ -16,6 +16,10 @@ from werkzeug.security import generate_password_hash
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 import dns.resolver
+from flask_caching import Cache
+from flask_caching.backends import FileSystemCache
+from flask_session import Session
+from flask_sqlalchemy import SQLAlchemy
 
 #imports for rate limiting 
 from flask import Flask, request, jsonify
@@ -34,6 +38,11 @@ UPLOAD_FOLDER = "static/productImg"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 serializer = URLSafeTimedSerializer(app.secret_key)
+
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sessions.db'  # You can use any other database URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # TODO Testing flask-mail
 app.config['MAIL_SERVER'] = 'smtp-mail.outlook.com'
@@ -74,15 +83,19 @@ app.config.update(
     SESSION_COOKIE_SECURE=True,   #set this to true when site is using HTTPS #Ensures that the session cookie is only sent over HTTPS
     SESSION_COOKIE_SAMESITE='Lax',
     SESSION_REFRESH_EACH_REQUEST = False,
-    PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour can be changed if needed
+    SESSION_TYPE = 'sqlalchemy',
+    SESSION_SQLALCHEMY = SQLAlchemy(app),
+    SESSION_PERMANENT = False
+    # PERMANENT_SESSION_LIFETIME=timedelta(hours=1)  #Set session to 1 hour can be changed if needed
 )
 
+
 # This implements Session Timeout and is set to 1 hour
-@app.before_request
-def make_session_permanent():
-    session.permanent = True
-    app.permanent_session_lifetime = timedelta(hours=1)
-    session.modified = True
+# @app.before_request
+# def make_session_permanent():
+#     session.permanent = True
+#     app.permanent_session_lifetime = timedelta(hours=1)
+#     session.modified = True
 
 
 def login_required(f):
@@ -221,6 +234,7 @@ def login():
                 session["name"] = name
                 # session["role"] = role
                 session["otp_verified"] = False
+             
 
                 # Reset the Login_attempts counter
                 try:
@@ -515,6 +529,7 @@ def resetPass(token):
 def logout():
     # Clear the user's session
     session.clear()
+    
     # Redirect to the login page or home page after logout
     return redirect(url_for("login"))
 
@@ -1495,4 +1510,13 @@ def logs():
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        try:
+            app.config['SESSION_SQLALCHEMY'].create_all()  # Create the sessions table
+            print(f"Database created at")
+        except Exception as e:
+            print(f"Error creating database: {e}")
+    Session(app)
     app.run(debug=True)
+
+    # app.run(debug=True)
