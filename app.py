@@ -169,7 +169,7 @@ def unlock():
     return redirect(request.referrer)
 
 # Only allow POST for login, else credentials will be visible in URL.
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET","POST"])
 @limiter.limit("8 per minute")  # Limit login attempts to 8 per minute
 def login():
     if request.method == "POST":
