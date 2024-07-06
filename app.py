@@ -52,6 +52,14 @@ DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, 'dat
 # Initialize the Argon2id password hasher
 ph = PasswordHasher()
 
+# ph = PasswordHasher(
+#     time_cost=2,  # Number of iterations (default is 2)
+#     memory_cost=102400,  # Memory usage in KiB (default is 102400, 100 MiB)
+#     parallelism=8,  # Number of parallel threads (default is 8)
+#     hash_len=32,  # Length of the hash (default is 16 bytes)
+#     salt_len=16  # Length of the random salt (default is 16 bytes)
+# )
+
 # Initialize the Limiter
 limiter = Limiter(
     get_remote_address,
