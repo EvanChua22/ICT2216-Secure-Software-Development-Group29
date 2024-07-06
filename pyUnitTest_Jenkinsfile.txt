@@ -1,0 +1,20 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://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@github.com/EvanChua22/ICT2216-Secure-Software-Development-Group29'            }
+        }
+        stage('Build') {
+            steps {
+                sh 'python3 test_registration.py'
+            }
+        }
+        stage('Test Registration') {
+            steps {
+                sh 'python3 -m pytest test_registration.py'
+            }
+        }
+    }
+}
