@@ -117,6 +117,8 @@ def otp_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
+
 @app.route("/")
 def index():
     if "name" in session:
@@ -1062,8 +1064,8 @@ def my_products_details(product_id):
         }
 
     conn.close()
-    print(product_details, file=sys.stderr)
-    print(review_list, file=sys.stderr)
+    # print(product_details, file=sys.stderr)
+    # print(review_list, file=sys.stderr)
 
     return render_template(
         "my_products_details.html",
@@ -1552,6 +1554,6 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Error creating database: {e}")
     Session(app)
-    app.run(debug=True)
+    app.run(debug=True,use_reloader = False)
 
     # app.run(debug=True)
