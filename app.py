@@ -533,7 +533,7 @@ def logout():
 # Strong Password complexity 
 def passwordStrength(password):
     # At least 8 characters long, contains at least one digit, one uppercase letter, one lowercase letter, and one special character
-    pattern = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,128}$")
+    pattern = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,128}$")
     # return pattern.match(password)
     match = pattern.match(password)
     print(f"Password: {password}, Match: {match}")
