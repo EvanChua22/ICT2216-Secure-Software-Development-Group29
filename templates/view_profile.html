@@ -43,7 +43,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="newPassword">New Password</label>
-                                <input type="password" class="form-control" id="newPassword" name="new_password" placeholder="New Password" minlength="8" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" title="Password must be at least 8 characters long, contain at least one digit, one uppercase letter, one lowercase letter, and one special character." required>
+                                <input type="password" class="form-control" id="newPassword" name="new_password" placeholder="New Password" minlength="8" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,128}$" title="Password must be at least 12 characters long, contain at least one digit, one uppercase letter, one lowercase letter, and one special character." required>
                             </div>
                             <div class="form-group">
                                 <label for="confirmNewPassword">Confirm New Password</label>
