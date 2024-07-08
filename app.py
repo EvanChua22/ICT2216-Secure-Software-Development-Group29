@@ -46,7 +46,7 @@ ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 serializer = URLSafeTimedSerializer(app.secret_key)
 
 # Configuring dB for Session Management.
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://../../sessions.db'  # You can use any other database URI
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../../sessions.db'  # You can use any other database URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
