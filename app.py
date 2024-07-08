@@ -304,7 +304,7 @@ def send_email(recipient_email, subject, body):
     smtp_server = 'smtp.outlook.com'
     smtp_port = 587
     # TODO Need to find a way to hide. 
-    smtp_username = 'mobsectest123@outlook.com'
+    smtp_username = 'ssdtesting123@outlook.com'
     smtp_password = 'Mobilesecpassword111'
 
     try:
@@ -353,7 +353,7 @@ def sendOTP():
         # Generate OTP
         otp = generate_otp()
 
-        # Store OTP in session (or alternatively in a database)
+        # Store OTP in session
         session["otp"] = otp
         session["otp_timestamp"] = datetime.now(timezone.utc)
 
