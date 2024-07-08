@@ -201,6 +201,7 @@ def login():
     app.logger.error("Visited the main page! %s","oops")
     if request.method == "POST":
         # Get the user input values from the input field
+        app.logger.info("Following method was used to vist: %s", "POST")
         name = sanitize_input(request.form.get("name"))
         password = sanitize_input(request.form.get("password"), input_type='password')
        
@@ -208,6 +209,7 @@ def login():
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
 
+        app.logger.info("Connected to the following dB: %s", "database.db")
         # TODO TO DELETE. IF THE ACCOUNT U USING FOR TESTING GETS LOCKED. UNCOMMENT BELOW 2 LINES AND TRY LOGIN WITH
         # THAT USERNAME. WILL RESET LOGIN_ATTEMPT COUNTER TO 0
         # cursor.execute("UPDATE Users SET login_attempts = 1 WHERE name = ?", (name,))
@@ -216,8 +218,9 @@ def login():
         
         # Checking if account has reached failed login attempts.
         login_attempts = cursor.execute("SELECT login_attempts FROM Users WHERE name = ?", (name,) ).fetchone()
+        app.logger.info("Read that this account has this many failed logins: %s", login_attempts)
         
-        if ( isinstance(login_attempts,int) and login_attempts[0] >= 5 ):
+        if ( isinstance(login_attempts[0],int) and login_attempts[0] >= 5 ):
             flash("Your account has been locked. Contact An Admin To Unlock Your Account")
             # Does not continue onto validation for locked accounts. 
             return render_template('login.html')
@@ -232,6 +235,7 @@ def login():
         # Retrieve the user's hashed password from the database
         cursor.execute("SELECT * FROM Users WHERE name = ?", (name,))
         result = cursor.fetchone()
+        app.logger.info("Currently trying to login: %s", result)
 
         if result:
             user_id = result[0]
@@ -256,8 +260,8 @@ def login():
                 try:
                     cursor.execute("UPDATE Users SET login_attempts = 0 WHERE name = ?", (name))
                     conn.commit()
-                except:
-                    print(result)
+                except Exception as e:
+                    app.logger.error("Error Occured when trying to reset failed logins attempt. %s", e)
                    
 
                 if name == "Admin2":
@@ -280,8 +284,8 @@ def login():
                 try:
                     cursor.execute("UPDATE Users SET login_attempts = login_attempts + 1 WHERE name = ?", (name,))
                     
-                except:
-                    print(result)
+                except Exception as e:
+                    app.logger.error("Failed to add one failed login attempt: %s", e)
 
 
         else:
