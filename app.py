@@ -52,7 +52,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 
-DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, '..\database.db'))
+DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, '../database.db'))
 print(DATABASE_PATH)
 
 # Initialize the Argon2id password hasher
@@ -185,7 +185,7 @@ def unlock():
     name = request.form.get('name')
 
     try:
-        conn = sqlite3.connect("..\database.db")
+        conn = sqlite3.connect("../database.db")
         cursor = conn.cursor()
         # Resets login_attempts to 0, unlocking account. 
         cursor.execute("UPDATE Users SET login_attempts = 0 WHERE name = ?", (name,))
@@ -207,7 +207,7 @@ def login():
         password = sanitize_input(request.form.get("password"), input_type='password')
        
         # Connect to the database
-        conn = sqlite3.connect("..\database.db")
+        conn = sqlite3.connect("../database.db")
         cursor = conn.cursor()
 
         app.logger.info("Connected to the following dB: %s", "database.db")
@@ -363,7 +363,7 @@ def sendOTP():
         session["otp_timestamp"] = datetime.now(timezone.utc)
 
         # Retrieve user email from the database
-        conn = sqlite3.connect("..\database.db")
+        conn = sqlite3.connect("../database.db")
         cursor = conn.cursor()
         cursor.execute("SELECT email FROM Users WHERE user_id = ?", (user_id,))
         result = cursor.fetchone()
@@ -412,7 +412,7 @@ def view_profile():
     user_id = session["user_id"]
 
     # Connect to the SQLite database
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
 
     # Execute a query to fetch the user details
@@ -449,7 +449,7 @@ def changePass():
         flash('New passwords do not match.', 'error')
         return redirect(url_for('view_profile', error="password_mismatch"))
 
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
     user = cursor.execute('SELECT * FROM Users WHERE user_id = ?', (user_id,)).fetchone()
 
@@ -479,7 +479,7 @@ def forgotPass():
             return redirect(url_for('forgotPass'))
         
         # Execute raw SQL query using sqlite3
-        conn = sqlite3.connect("..\database.db")
+        conn = sqlite3.connect("../database.db")
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM Users WHERE email = ?", (email,))
         user_row = cursor.fetchone()
@@ -526,7 +526,7 @@ def resetPass(token):
             flash('Passwords do not match. Please try again.', 'warning')
             return render_template('resetPass.html', token=token)
 
-        conn = sqlite3.connect("..\database.db")
+        conn = sqlite3.connect("../database.db")
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM Users WHERE email = ?", (email,))
         user_row = cursor.fetchone()
@@ -579,7 +579,7 @@ def register():
 
         hashed_password = ph.hash(password)
 
-        conn = sqlite3.connect("..\database.db")
+        conn = sqlite3.connect("../database.db")
         cursor = conn.cursor()
         try:
             print("success")
@@ -638,7 +638,7 @@ def verifyAccount():
     except Exception as e:
         print(e)
     
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
     try: 
         cursor.execute(
@@ -703,7 +703,7 @@ def upload_product():
         print(f"Quantity: {quantity}")
 
         # Connect to the database
-        conn = sqlite3.connect("..\database.db")
+        conn = sqlite3.connect("../database.db")
         cursor = conn.cursor()
         try:
             cursor.execute(
@@ -740,7 +740,7 @@ def upload_product():
 @app.route("/product_image/<int:product_id>")
 def product_image(product_id):
     # Connect to the database
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
     cursor.execute("SELECT image_blob FROM Products WHERE product_id = ?", (product_id,))
     image_blob = cursor.fetchone()[0]
@@ -775,7 +775,7 @@ def addrec():
             role = request.form["role"]
 
             # Connect to SQLite3 database and execute the INSERT
-            with sqlite3.connect("..\database.db") as con:
+            with sqlite3.connect("../database.db") as con:
                 cur = con.cursor()
                 cur.execute(
                     "INSERT INTO Users (name, password, phoneNum, email, role, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))",
@@ -799,7 +799,7 @@ def addrec():
 def list():
     # Connect to the SQLite3 datatabase and
     # SELECT rowid and all Rows from the users table.
-    con = sqlite3.connect("..\database.db")
+    con = sqlite3.connect("../database.db")
     con.row_factory = sqlite3.Row
 
     cur = con.cursor()
@@ -819,7 +819,7 @@ def edit():
             # Use the hidden input value of id from the form to get the user_id
             user_id = request.form["user_id"]
             # Connect to the database and SELECT a specific user_id
-            con = sqlite3.connect("..\database.db")
+            con = sqlite3.connect("../database.db")
             con.row_factory = sqlite3.Row
 
             cur = con.cursor()
@@ -851,7 +851,7 @@ def editrec():
             role = request.form["role"]
 
             # UPDATE a specific record in the database based on the user_id
-            with sqlite3.connect("..\database.db") as con:
+            with sqlite3.connect("../database.db") as con:
                 cur = con.cursor()
                 cur.execute(
                     "UPDATE Users SET name = ?, password = ?, phoneNum = ?, email = ?, role = ? WHERE user_id = ?",
@@ -884,7 +884,7 @@ def delete():
             user_id = request.form["user_id"]
             name = request.form["name"]
             # Connect to the database and DELETE a specific record based on user_id
-            with sqlite3.connect("..\database.db") as con:
+            with sqlite3.connect("../database.db") as con:
                 cur = con.cursor()
                 cur.execute("DELETE FROM Users WHERE user_id = ?", (user_id,))
                 con.commit()
@@ -912,7 +912,7 @@ def view_products():
     if "user_id" in session:
         user_id = session["user_id"]
 
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
     cursor.execute(
         "SELECT product_id, product_name, price, image_blob, verified FROM Products"
@@ -945,7 +945,7 @@ def search_products():
             url_for("view_products")
         )  # Redirect to products page if no query is provided
 
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     conn.row_factory = sqlite3.Row  # This will let us access rows as dictionaries
     cursor = conn.cursor()
 
@@ -966,7 +966,7 @@ def product_details(product_id):
     if "user_id" in session:
         user_id = session["user_id"]
 
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
 
     # Fetch product details from the database based on the product_id
@@ -1005,7 +1005,7 @@ def product_details(product_id):
 
 def products_reviews(product_id):
     user_id = session.get("user_id")
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
     # Fetch reviews
     cursor.execute(
@@ -1038,7 +1038,7 @@ def my_products():
     if "user_id" in session:
         user_id = session["user_id"]
 
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM Products where user_id = ?", (user_id,))
@@ -1066,7 +1066,7 @@ def my_products():
 def my_products_details(product_id):
     user_id = session.get("user_id")
     review_list = my_products_reviews(product_id)
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
     product_dict = None
 
@@ -1103,7 +1103,7 @@ def my_products_details(product_id):
 
 def my_products_reviews(product_id):
     user_id = session.get("user_id")
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
     # Fetch reviews
     cursor.execute(
@@ -1135,7 +1135,7 @@ def product_review(product_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
 
     # Fetch product details to display on the review page
@@ -1165,7 +1165,7 @@ def submit_review(product_id):
     comment = sanitize_input(request.form["comment"])
     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
 
     # Insert the new review into the Reviews table
@@ -1192,7 +1192,7 @@ def delete_product(product_id):
     # Retrieve user's ID from session
     user_id = session["user_id"]
 
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
 
     cursor.execute(
@@ -1222,7 +1222,7 @@ def delete_product(product_id):
 def toggle_verified(product_id):
     try:
         # Connect to the SQLite database
-        conn = sqlite3.connect("..\database.db")
+        conn = sqlite3.connect("../database.db")
         cursor = conn.cursor()
 
         # Retrieve the current verified status
@@ -1533,7 +1533,7 @@ def process_payment():
 def view_products_admin():
     # Connect to the SQLite3 datatabase and
     # SELECT rowid and all Rows from the users table.
-    con = sqlite3.connect("..\database.db")
+    con = sqlite3.connect("../database.db")
     con.row_factory = sqlite3.Row
 
     cur = con.cursor()
@@ -1546,7 +1546,7 @@ def view_products_admin():
 
 
 def create_log(event_type, user_id=None, details=None):
-    conn = sqlite3.connect("..\database.db")
+    conn = sqlite3.connect("../database.db")
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO logs (event_type, user_id, details) VALUES (?, ?, ?)",
@@ -1560,7 +1560,7 @@ def create_log(event_type, user_id=None, details=None):
 def logs():
     # Connect to the SQLite3 datatabase and
     # SELECT rowid and all Rows from the users table.
-    con = sqlite3.connect("..\database.db")
+    con = sqlite3.connect("../database.db")
     con.row_factory = sqlite3.Row
 
     cur = con.cursor()
