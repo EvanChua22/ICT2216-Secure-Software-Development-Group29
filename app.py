@@ -20,7 +20,7 @@ from flask_caching import Cache
 from flask_caching.backends import FileSystemCache
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
-
+import secrets
 
 # For logging to a file
 import logging
@@ -297,7 +297,7 @@ def login():
 
 # Multi-Factor Authentication
 def generate_otp():
-    return ''.join(random.choices(string.digits, k=6))
+    return ''.join(secrets.choice(string.digits) for _ in range(6))
 
 
 def send_email(recipient_email, subject, body):
