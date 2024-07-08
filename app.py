@@ -136,7 +136,7 @@ def otp_required(f):
 
 @app.route("/")
 def index():
-    app.logger.info("Visited the main page!")
+    app.logger.info("Visited the main page! %s","oops")
     if "name" in session:
         role = session.get("role")
         if role == "admin":
@@ -198,6 +198,7 @@ def unlock():
 @app.route("/login", methods=["GET","POST"])
 @limiter.limit("8 per minute")  # Limit login attempts to 8 per minute
 def login():
+    app.logger.error("Visited the main page! %s","oops")
     if request.method == "POST":
         # Get the user input values from the input field
         name = sanitize_input(request.form.get("name"))
