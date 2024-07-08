@@ -585,6 +585,7 @@ def register():
                 (name, hashed_password, phone_number, email, role)
             )
             conn.commit()
+            app.logger.info("Cursor about to commit this %s", cursor)
 
             # Send a account confirmation email
             token = serializer.dumps(email,salt='test')
@@ -598,7 +599,7 @@ def register():
             send_email(email, subject, body)
             flash("Your account has been successfully created!", "success")
             print("success")
-            app.logger.info("Good stuff it worked!")
+            app.logger.info("Sent an Registration Email to %s", email)
             return redirect(url_for("login"))
 
         except sqlite3.IntegrityError as e:
