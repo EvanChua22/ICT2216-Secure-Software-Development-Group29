@@ -42,7 +42,7 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Provide a secret key for session management
 UPLOAD_FOLDER = "static/productImg"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
+ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg"}
 serializer = URLSafeTimedSerializer(app.secret_key)
 
 # Configuring dB for Session Management.
