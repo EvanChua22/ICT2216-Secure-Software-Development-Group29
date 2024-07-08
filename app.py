@@ -21,6 +21,11 @@ from flask_caching.backends import FileSystemCache
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 
+
+# For logging to a file
+import logging
+from logging.handlers import RotatingFileHandler
+
 #imports for rate limiting 
 from flask import Flask, request, jsonify
 from flask_limiter import Limiter
@@ -1557,6 +1562,13 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Error creating database: {e}")
     Session(app)
+
+    handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=3)
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    app.logger.addHandler(handler)
+    app.logger.info("Hello worls")
     app.run(debug=True,use_reloader = False)
 
     # app.run(debug=True)
