@@ -43,6 +43,7 @@
 
 <!-- About the Project -->
 ## :star2: About the Project
+Granny Ying's Attic Threads Clothing Store is an online platform for buying and selling vintage clothing items. The vintage clothing market is currently oversaturated with overpriced items and plagued by scammers, making it difficult for genuine enthusiasts to find quality pieces. This app addresses these issues by providing a secure and user-friendly platform for buying and selling vintage clothing. The application is built using Flask and Python, with SQLite as the database, and Docker and Jenkins for DevOps.
 
 <!-- TechStack -->
 ### :space_invader: Tech Stack
@@ -50,35 +51,24 @@
 <details>
   <summary>Client</summary>
   <ul>
-    <li><a href="https://www.typescriptlang.org/">Typescript</a></li>
-    <li><a href="https://nextjs.org/">Next.js</a></li>
-    <li><a href="https://reactjs.org/">React.js</a></li>
-    <li><a href="https://tailwindcss.com/">TailwindCSS</a></li>
+    <li><a href="https://html.spec.whatwg.org/">HTML</a></li>
+    <li><a href="https://www.w3.org/Style/CSS/">CSS</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript">JavaScript</a></li>
   </ul>
 </details>
 
 <details>
   <summary>Server</summary>
   <ul>
-    <li><a href="https://www.typescriptlang.org/">Typescript</a></li>
-    <li><a href="https://expressjs.com/">Express.js</a></li>
-    <li><a href="https://go.dev/">Golang</a></li>
-    <li><a href="https://nestjs.com/">Nest.js</a></li>
-    <li><a href="https://socket.io/">SocketIO</a></li>
-    <li><a href="https://www.prisma.io/">Prisma</a></li>    
-    <li><a href="https://www.apollographql.com/">Apollo</a></li>
-    <li><a href="https://graphql.org/">GraphQL</a></li>
+    <li><a href="https://flask.palletsprojects.com/">Flask</a></li>
+    <li><a href="https://python.org/">Python</a></li>
   </ul>
 </details>
 
 <details>
 <summary>Database</summary>
   <ul>
-    <li><a href="https://www.mysql.com/">MySQL</a></li>
-    <li><a href="https://www.postgresql.org/">PostgreSQL</a></li>
-    <li><a href="https://redis.io/">Redis</a></li>
-    <li><a href="https://neo4j.com/">Neo4j</a></li>
-    <li><a href="https://www.mongodb.com/">MongoDB</a></li>
+    <li><a href="https://www.sqlite.org/">SQLite</a></li>
   </ul>
 </details>
 
@@ -87,16 +77,21 @@
   <ul>
     <li><a href="https://www.docker.com/">Docker</a></li>
     <li><a href="https://www.jenkins.io/">Jenkins</a></li>
-    <li><a href="https://circleci.com/">CircleCLI</a></li>
   </ul>
 </details>
 
 <!-- Features -->
 ### :dart: Features
 
-- Feature 1
-- Feature 2
-- Feature 3
+- The system provides a secure login mechanism for users.
+- Users can perform searches for vintage clothing items.
+- Users can create listings of vintage clothing items.
+- The system processes payments securely.
+- Users can leave reviews and ratings for sellers.
+- Administrators can delete user accounts.
+- Admins can verify the authenticity of vintage items listed on the platform, ensuring only genuine products are available for purchase.
+- Users can create their accounts.
+- Users can update their accounts.
 
 
 
@@ -113,15 +108,6 @@ This project uses a few packages listed in requirements.txt
 ```
 
 
-<!-- Installation -->
-### :gear: Installation
-
-Install my-project with npm
-
-```bash
-  TEST
-```
-
 
 <!-- Run Locally -->
 ### :running: Run Locally
@@ -135,53 +121,33 @@ Clone the project
 Go to the project directory
 
 ```bash
-  TEST
+  cd ICT2216-Secure-Software-Development-Group29
 ```
 
 Install dependencies
 
 ```bash
-  TEST
+  pip install -r requirements.txt
 ```
 
 Start the server
 
 ```bash
-  TEST
+  python -m flask run
 ```
 
 
 <!-- Deployment -->
 ### :triangular_flag_on_post: Deployment
 
-To deploy this project run
+To access the deployed project, visit:
 
-```bash
-  TEST
-```
-
-
-<!-- Usage -->
-## :eyes: Usage
-
-ADD visuals such as screenshots here or text on the usage if needed. Along with codes that may be helpful
-
-
-```bash
-  TEST
-```
-
-<!-- Roadmap -->
-## :compass: Roadmap
-
-* [x] Todo 1
-* [ ] Todo 2
-
+[Granny Ying's Attic Threads Clothing Store](https://grannyat.ddns.net/login)
 
 <!-- Contributing -->
 ## :wave: Contributing
 
-*  Den Haikal 
+*  Den
 *  Evan
 *  Darshan
 *  Carmen
