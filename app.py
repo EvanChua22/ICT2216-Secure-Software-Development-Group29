@@ -20,7 +20,7 @@ from flask_caching import Cache
 from flask_caching.backends import FileSystemCache
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
-
+import secrets
 
 # For logging to a file
 import logging
@@ -297,14 +297,14 @@ def login():
 
 # Multi-Factor Authentication
 def generate_otp():
-    return ''.join(random.choices(string.digits, k=6))
+    return ''.join(secrets.choice(string.digits) for _ in range(6))
 
 
 def send_email(recipient_email, subject, body):
     smtp_server = 'smtp.outlook.com'
     smtp_port = 587
     # TODO Need to find a way to hide. 
-    smtp_username = 'mobsectest123@outlook.com'
+    smtp_username = 'ssdtesting123@outlook.com'
     smtp_password = 'Mobilesecpassword111'
 
     try:
@@ -353,7 +353,7 @@ def sendOTP():
         # Generate OTP
         otp = generate_otp()
 
-        # Store OTP in session (or alternatively in a database)
+        # Store OTP in session
         session["otp"] = otp
         session["otp_timestamp"] = datetime.now(timezone.utc)
 
