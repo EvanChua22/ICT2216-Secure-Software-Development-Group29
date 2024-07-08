@@ -73,6 +73,13 @@ limiter = Limiter(
 )
 
 
+log_path = '/var/log/my_flask_app/app.log'
+os.makedirs(os.path.dirname(log_path), exist_ok=True)
+handler = RotatingFileHandler(log_path, maxBytes=10000, backupCount=3)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+@app.logger.addHandler(handler)
 
 
 
@@ -1563,12 +1570,13 @@ if __name__ == "__main__":
             print(f"Error creating database: {e}")
     Session(app)
 
-    handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=3)
-    handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    app.logger.addHandler(handler)
-    app.logger.info("Hello worls")
+    
     app.run(debug=True,use_reloader = False)
 
     # app.run(debug=True)
+#     handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=3)
+#     handler.setLevel(logging.INFO)
+#     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#     handler.setFormatter(formatter)
+#     app.logger.addHandler(handler)
+#     app.logger.info("Hello worls")
