@@ -73,14 +73,17 @@ limiter = Limiter(
 )
 
 
+# Create and configure the Flask application
+# app = Flask(__name__)
+
+# Setup logging to a file
 log_path = '/var/log/my_flask_app/app.log'
 os.makedirs(os.path.dirname(log_path), exist_ok=True)
 handler = RotatingFileHandler(log_path, maxBytes=10000, backupCount=3)
 handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
-@app.logger.addHandler(handler)
-
+app.logger.addHandler(handler)
 
 
 # Redirect rate limit error to its own html
@@ -133,6 +136,7 @@ def otp_required(f):
 
 @app.route("/")
 def index():
+    app.logger.info("Visited the main page!")
     if "name" in session:
         role = session.get("role")
         if role == "admin":
