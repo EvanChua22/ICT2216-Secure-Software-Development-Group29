@@ -220,7 +220,7 @@ def login():
         login_attempts = cursor.execute("SELECT login_attempts FROM Users WHERE name = ?", (name,) ).fetchone()
         app.logger.info("Read that this account has this many failed logins: %s", login_attempts)
         
-        if ( isinstance(login_attempts[0],int) and login_attempts[0] >= 5 ):
+        if ( isinstance(login_attempts,int) and login_attempts[0] >= 5 ):
             flash("Your account has been locked. Contact An Admin To Unlock Your Account")
             # Does not continue onto validation for locked accounts. 
             return render_template('login.html')
@@ -258,7 +258,7 @@ def login():
 
                 # Reset the Login_attempts counter
                 try:
-                    cursor.execute("UPDATE Users SET login_attempts = 0 WHERE name = ?", (name))
+                    cursor.execute("UPDATE Users SET login_attempts = 0 WHERE name = ?", (name,))
                     conn.commit()
                 except Exception as e:
                     app.logger.error("Error Occured when trying to reset failed logins attempt. %s", e)
@@ -566,7 +566,6 @@ def passwordStrength(password):
 @limiter.limit("10 per minute")
 def register():
     if request.method == "POST":
-
         name = sanitize_input(request.form.get("name"))
         password = sanitize_input(request.form.get("password"), input_type='password')
         phone_number = sanitize_input(request.form.get("phoneNum"))
