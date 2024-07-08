@@ -52,7 +52,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 
-DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, 'database.db'))
+DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(app.root_path, '..\database.db'))
+print(DATABASE_PATH)
 
 # Initialize the Argon2id password hasher
 # ph = PasswordHasher()
