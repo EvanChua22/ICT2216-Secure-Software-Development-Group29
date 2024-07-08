@@ -1,4 +1,4 @@
-database.db
+
 __pycache__/app.cpython-39.pyc
 __pycache__/app.cpython-311.pyc
 blueprints/__pycache__/filmmaker.cpython-311.pyc
@@ -7,4 +7,4 @@ modules/__pycache__/database.cpython-311.pyc
 static/productImg/figure1.png
 venv/*
 database - Copy.db
-database.db
+
