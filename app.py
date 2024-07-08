@@ -43,12 +43,12 @@ app.secret_key = "your_secret_key"  # Provide a secret key for session managemen
 UPLOAD_FOLDER = "static/productImg"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg"}
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB max size
 serializer = URLSafeTimedSerializer(app.secret_key)
 
 # Configuring dB for Session Management.
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sessions.db'  # You can use any other database URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 
 
 
@@ -309,8 +309,8 @@ def send_email(recipient_email, subject, body):
     smtp_server = 'smtp.outlook.com'
     smtp_port = 587
     # TODO Need to find a way to hide. 
-    smtp_username = 'ssdtesting123@outlook.com'
-    smtp_password = 'Mobilesecpassword111'
+    smtp_username = 'GrannyVintageThread@outlook.com'
+    smtp_password = 'GrannyThread1965'
 
     try:
         with smtplib.SMTP(smtp_server, smtp_port) as server:
